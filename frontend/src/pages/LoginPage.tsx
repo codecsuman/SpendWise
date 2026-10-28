@@ -5,7 +5,8 @@
 //   1. We define a SCHEMA (zod) that describes what a valid login looks like.
 //   2. react-hook-form watches the inputs and checks them against that schema.
 //   3. On submit, we send the email + password to the backend with axios.
-//   4. If the backend accepts it, we save the token and redirect to /dashboard.
+//   4. The backend replies with httpOnly cookies, so the browser is now logged
+//      in. We just redirect to /dashboard — no token is stored in JavaScript.
 // ============================================================================
 
 // --- IMPORTS ---------------------------------------------------------------
@@ -102,11 +103,16 @@ export default function LoginPage() {
 
     try {
       // Send a POST request to the backend with the typed email + password.
-      // `data` is whatever JSON the server replies with (usually { token }).
-      const { data } = await axios.post(`${API_URL}/api/auth/login`, values)
+      // withCredentials: true is required: it tells the browser to ACCEPT the
+      // Set-Cookie headers the server sends back. Without it, the login
+      // "succeeds" but no cookie is stored, so the user stays logged out.
+      await axios.post(`${API_URL}/api/auth/login`, values, {
+        withCredentials: true,
+      })
 
-      // Persist the auth token so the user stays logged in across refreshes.
-      localStorage.setItem('token', data.token)
+      // Deliberately nothing is saved here. The tokens live in httpOnly
+      // cookies that JavaScript cannot read, so an XSS bug cannot steal them.
+      // The response body only contains the safe public user object.
 
       // Send the user to the dashboard.
       navigate('/dashboard')

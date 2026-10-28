@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import { env } from "./config/env.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 import { notFoundMiddleware } from "./middleware/notFound.middleware.js";
 import authRouter from "./routes/auth.routes.js";
@@ -8,8 +9,13 @@ import authRouter from "./routes/auth.routes.js";
 const app = express();
 
 app.use(helmet());
-app.use(cors());
-app.use(express.json());
+
+// Allowlist: only the frontend origin may call this API.
+// `credentials: true` is what lets the browser send/accept httpOnly cookies.
+// A wildcard origin ("*") is illegal together with credentials, so we never use it.
+app.use(cors({ origin: env.CLIENT_URL, credentials: true }));
+
+app.use(express.json({ limit: "10kb" }));
 
 // Simple request logging middleware (replace with pino-http later)
 app.use((req, _res, next) => {

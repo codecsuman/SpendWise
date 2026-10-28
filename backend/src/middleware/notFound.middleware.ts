@@ -1,13 +1,10 @@
-import { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
+import { AppError } from "../utils/AppError.js";
 
 export function notFoundMiddleware(
   req: Request,
   _res: Response,
   next: NextFunction,
 ): void {
-  const error = new Error(
-    `Route ${req.method} ${req.originalUrl} not found`,
-  ) as Error & { statusCode?: number };
-  error.statusCode = 404;
-  next(error);
+  next(new AppError(`Route ${req.method} ${req.originalUrl} not found`, 404));
 }
