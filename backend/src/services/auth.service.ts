@@ -1,6 +1,7 @@
 import { UserRepository } from '../repositories/user.repository.js';
 import { hashPassword, verifyPassword } from '../utils/password.js';
 import { generateTokenPair, verifyToken } from '../utils/jwt.js';
+import { hashToken } from '../utils/tokenHash.js';
 import { AppError } from '../utils/AppError.js';
 import type { IUser } from '../models/User.model.js';
 import type { RegisterInput, LoginInput } from '../validators/auth.validator.js';
@@ -64,8 +65,10 @@ export class AuthService {
       user.email
     );
 
-    // Store the refresh token so it can be revoked on logout
-    await userRepository.updateById(user._id.toString(), { refreshToken });
+    // Store only the HASH, so a database leak cannot be replayed as a cookie.
+    await userRepository.updateById(user._id.toString(), {
+      refreshToken: hashToken(refreshToken),
+    });
 
     return { user: toPublicUser(user), accessToken, refreshToken };
   }
@@ -90,7 +93,7 @@ export class AuthService {
     );
 
     await userRepository.updateById(user._id.toString(), {
-      refreshToken,
+      refreshToken: hashToken(refreshToken),
       lastLoginAt: new Date(),
     });
 
@@ -98,24 +101,26 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string): Promise<AuthResult> {
+    // 1. Find the session by the HASH of the token we received.
+    const user = await userRepository.findByRefreshToken(hashToken(refreshToken));
+
+    // Hash not found → the session was revoked (logout) or already rotated.
+    if (!user) {
+      throw new AppError('Refresh token has been revoked', 401);
+    }
+
+    // 2. Then check the JWT signature and expiry.
     try {
       verifyToken(refreshToken, 'refresh');
     } catch {
       throw new AppError('Invalid or expired refresh token', 401);
     }
 
-    const user = await userRepository.findByRefreshToken(refreshToken);
-
-    // Token is valid but not stored → it was revoked (logout / rotation)
-    if (!user) {
-      throw new AppError('Refresh token has been revoked', 401);
-    }
-
     const tokens = generateTokenPair(user._id.toString(), user.email);
 
-    // Token rotation: replace the old refresh token with a new one
+    // Token rotation: replace the old hash with the hash of the new token.
     await userRepository.updateById(user._id.toString(), {
-      refreshToken: tokens.refreshToken,
+      refreshToken: hashToken(tokens.refreshToken),
     });
 
     return { user: toPublicUser(user), ...tokens };

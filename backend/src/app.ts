@@ -4,6 +4,7 @@ import helmet from "helmet";
 import { env } from "./config/env.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 import { notFoundMiddleware } from "./middleware/notFound.middleware.js";
+import { globalLimiter } from "./middleware/rateLimit.middleware.js";
 import authRouter from "./routes/auth.routes.js";
 
 const app = express();
@@ -16,6 +17,9 @@ app.use(helmet());
 app.use(cors({ origin: env.CLIENT_URL, credentials: true }));
 
 app.use(express.json({ limit: "10kb" }));
+
+// Count every request per IP. Must sit before the routes it protects.
+app.use(globalLimiter);
 
 // Simple request logging middleware (replace with pino-http later)
 app.use((req, _res, next) => {
@@ -35,5 +39,8 @@ app.use(notFoundMiddleware);
 
 // Global error handler (must be last)
 app.use(errorMiddleware);
+
+
+
 
 export default app;

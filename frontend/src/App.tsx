@@ -6,6 +6,15 @@ import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom'
 // Our real login screen lives in its own file. Import it so the router can use it.
 import LoginPage from './pages/LoginPage'
 
+// The sign-up screen lives in its own file too.
+import RegisterPage from './pages/RegisterPage'
+
+// The gate that checks the session cookie before showing private pages.
+import ProtectedRoute from './routes/ProtectedRoute'
+
+// The shell (sidebar + navbar) around every private page.
+import MainLayout from './components/layout/MainLayout'
+
 // A component is just a function that returns JSX (the UI).
 // Home is our landing page component.
 function Home() {
@@ -46,10 +55,21 @@ function App() {
       <Routes>
         {/* When the URL is exactly "/", render the <Home /> component */}
         <Route path="/" element={<Home />} />
-        {/* When the URL is "/dashboard", render <Dashboard /> */}
-        <Route path="/dashboard" element={<Dashboard />} />
         {/* When the URL is "/login", render the real <LoginPage /> component */}
         <Route path="/login" element={<LoginPage />} />
+        {/* When the URL is "/register", render the real <RegisterPage /> component */}
+        <Route path="/register" element={<RegisterPage />} />
+
+        {/* Everything inside this <Route> requires a valid session cookie.
+            ProtectedRoute renders <Outlet />, which is where the child lands. */}
+        <Route element={<ProtectedRoute />}>
+          {/* Logged in -> wrap the page in the app shell (sidebar + navbar).
+              Keep ProtectedRoute outside: a guest must never see the shell. */}
+          <Route element={<MainLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Route>
+        </Route>
+
         {/* "*" catches ANY url not listed above, then Navigate redirects (replace) to "/" */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

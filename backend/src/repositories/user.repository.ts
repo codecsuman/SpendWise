@@ -22,8 +22,9 @@ export class UserRepository {
     }).exec();
   }
 
-  async findByRefreshToken(token: string): Promise<IUser | null> {
-    return User.findOne({ refreshToken: token }).select('+refreshToken').exec();
+  // The argument is the HASH of the refresh token, never the token itself.
+  async findByRefreshToken(tokenHash: string): Promise<IUser | null> {
+    return User.findOne({ refreshToken: tokenHash }).select('+refreshToken').exec();
   }
 
   async updateById(

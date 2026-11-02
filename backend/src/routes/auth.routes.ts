@@ -18,12 +18,14 @@ import {
   register,
 } from '../controllers/auth.controller.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
+import { authLimiter } from '../middleware/rateLimit.middleware.js';
 
 const authRouter = Router();
 
 // --- Public routes ---
-authRouter.post('/register', register);
-authRouter.post('/login', login);
+// authLimiter runs before the controller, so a blocked IP never reaches bcrypt.
+authRouter.post('/register', authLimiter, register);
+authRouter.post('/login', authLimiter, login);
 authRouter.post('/refresh', refresh);
 
 // --- Protected routes ---
