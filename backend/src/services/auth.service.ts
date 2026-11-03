@@ -29,7 +29,7 @@ export interface AuthResult {
  * Strip sensitive fields before sending a user back over HTTP.
  * Never return `password`, `refreshToken` or verification tokens.
  */
-function toPublicUser(user: IUser): PublicUser {
+export function toPublicUser(user: IUser): PublicUser {
   return {
     id: user._id.toString(),
     name: user.name,

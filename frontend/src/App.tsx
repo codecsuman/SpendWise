@@ -15,6 +15,9 @@ import ProtectedRoute from './routes/ProtectedRoute'
 // The shell (sidebar + navbar) around every private page.
 import MainLayout from './components/layout/MainLayout'
 
+// The profile screen: edit account details and change the password.
+import ProfilePage from './pages/ProfilePage'
+
 // A component is just a function that returns JSX (the UI).
 // Home is our landing page component.
 function Home() {
@@ -67,6 +70,7 @@ function App() {
               Keep ProtectedRoute outside: a guest must never see the shell. */}
           <Route element={<MainLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>
 

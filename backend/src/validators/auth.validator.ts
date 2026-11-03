@@ -6,7 +6,7 @@ const emailField = z
   .toLowerCase()
   .trim();
 
-const passwordField = z
+export const passwordField = z
   .string()
   .min(8, 'Password must be at least 8 characters')
   .max(128, 'Password cannot exceed 128 characters')

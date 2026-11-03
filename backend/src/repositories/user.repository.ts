@@ -15,6 +15,12 @@ export class UserRepository {
     return User.findById(id).exec();
   }
 
+  // 'password' is select: false in the model, so it has to be asked for
+  // explicitly. Used only by password comparison, never for responses.
+  async findByIdWithPassword(id: string): Promise<IUser | null> {
+    return User.findById(id).select('+password').exec();
+  }
+
   async findByEmailVerificationToken(token: string): Promise<IUser | null> {
     return User.findOne({
       emailVerificationToken: token,

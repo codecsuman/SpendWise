@@ -6,7 +6,7 @@ import { errorMiddleware } from "./middleware/error.middleware.js";
 import { notFoundMiddleware } from "./middleware/notFound.middleware.js";
 import { globalLimiter } from "./middleware/rateLimit.middleware.js";
 import authRouter from "./routes/auth.routes.js";
-
+import userRouter from './routes/user.routes.js'
 const app = express();
 
 app.use(helmet());
@@ -33,6 +33,8 @@ app.get("/health", (_req, res) => res.json({ status: "ok" }));
 // Auth endpoints: /api/auth/register, /login, /refresh, /logout, /me
 // Mounted here, above the 404 handler, so Express can still match these paths.
 app.use("/api/auth", authRouter);
+
+app.use('/api/users',userRouter);
 
 // 404 handler (must be after all routes)
 app.use(notFoundMiddleware);

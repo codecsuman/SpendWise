@@ -45,7 +45,7 @@ const navItems: NavItem[] = [
   { to: '/budgets', label: 'Budgets', icon: Wallet },
   { to: '/goals', label: 'Goals', icon: Target },
   { to: '/analytics', label: 'Analytics', icon: TrendingUp },
-  { to: '/settings', label: 'Settings', icon: Settings },
+  { to: '/profile', label: 'Profile', icon: Settings },
 ]
 
 export default function MainLayout() {
