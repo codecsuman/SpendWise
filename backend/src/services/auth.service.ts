@@ -1,4 +1,5 @@
 import { UserRepository } from '../repositories/user.repository.js';
+import { categoryService } from './category.service.js';
 import { hashPassword, verifyPassword } from '../utils/password.js';
 import { generateTokenPair, verifyToken } from '../utils/jwt.js';
 import { hashToken } from '../utils/tokenHash.js';
@@ -59,6 +60,16 @@ export class AuthService {
       timezone: input.timezone,
       language: input.language,
     });
+
+    // Every new account starts with the 11 default categories.
+    // Seeding is idempotent and must not fail registration: the user row
+    // already exists, so a retry would only hit "email already exists".
+    try {
+      await categoryService.seedDefaults(user._id.toString());
+    } catch (error) {
+      // Temporary until pino-http is wired into the app.
+      console.error('Failed to seed default categories', error);
+    }
 
     const { accessToken, refreshToken } = generateTokenPair(
       user._id.toString(),

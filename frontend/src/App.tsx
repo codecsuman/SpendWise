@@ -18,6 +18,12 @@ import MainLayout from './components/layout/MainLayout'
 // The profile screen: edit account details and change the password.
 import ProfilePage from './pages/ProfilePage'
 
+// Money in and out: list, filter and delete transactions.
+import TransactionsPage from './pages/TransactionsPage'
+
+// Manage the labels transactions are filed under.
+import CategoriesPage from './pages/CategoriesPage'
+
 // A component is just a function that returns JSX (the UI).
 // Home is our landing page component.
 function Home() {
@@ -70,6 +76,8 @@ function App() {
               Keep ProtectedRoute outside: a guest must never see the shell. */}
           <Route element={<MainLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/transactions" element={<TransactionsPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>

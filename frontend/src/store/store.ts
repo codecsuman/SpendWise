@@ -11,6 +11,8 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { authApi } from '../features/auth/services/authApi'
 import {profileApi} from '../features/profile/services/profileApi'
+import { transactionApi } from "../features/transactions/services/transactionApi";
+import { categoryApi } from '../features/categories/services/categoryApi'
 
 export const store = configureStore({
   reducer: {
@@ -18,12 +20,19 @@ export const store = configureStore({
     // lands under the wrong name and the generated hooks cannot find it.
     [authApi.reducerPath]: authApi.reducer,
     [profileApi.reducerPath]: profileApi.reducer,
+    [transactionApi.reducerPath]: transactionApi.reducer,
+    [categoryApi.reducerPath]: categoryApi.reducer,
   },
 
   // RTK Query ships as middleware. Without this line, caching, invalidation
   // and refetching silently stop working. Always add it.
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(authApi.middleware,profileApi.middleware),
+    getDefaultMiddleware().concat(
+      authApi.middleware,
+      profileApi.middleware,
+      transactionApi.middleware,
+      categoryApi.middleware
+    ),
 })
 
 // These two types are derived FROM the store, so they can never drift out of

@@ -7,6 +7,8 @@ import { notFoundMiddleware } from "./middleware/notFound.middleware.js";
 import { globalLimiter } from "./middleware/rateLimit.middleware.js";
 import authRouter from "./routes/auth.routes.js";
 import userRouter from './routes/user.routes.js'
+import transactionRouter from './routes/transaction.routes.js'
+import categoryRouter from './routes/category.routes.js'
 const app = express();
 
 app.use(helmet());
@@ -35,6 +37,10 @@ app.get("/health", (_req, res) => res.json({ status: "ok" }));
 app.use("/api/auth", authRouter);
 
 app.use('/api/users',userRouter);
+
+app.use('/api/transactions', transactionRouter);
+
+app.use('/api/categories', categoryRouter);
 
 // 404 handler (must be after all routes)
 app.use(notFoundMiddleware);

@@ -16,6 +16,7 @@ import {
   LogOut,
   Menu,
   Settings,
+  Tags,
   Target,
   TrendingUp,
   Wallet,
@@ -42,6 +43,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
+  { to: '/categories', label: 'Categories', icon: Tags },
   { to: '/budgets', label: 'Budgets', icon: Wallet },
   { to: '/goals', label: 'Goals', icon: Target },
   { to: '/analytics', label: 'Analytics', icon: TrendingUp },
