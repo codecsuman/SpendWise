@@ -101,6 +101,30 @@ export class TransactionRepository {
     };
   }
 
+  // Total expense per category in a date range. Used by the budget service
+  // to calculate spent / remaining without storing a second copy of the truth.
+  async sumExpensesByCategory(
+    userId: string,
+    from: Date,
+    to: Date
+  ): Promise<Map<string, number>> {
+    const rows = await Transaction.aggregate<{
+      _id: Types.ObjectId;
+      total: number;
+    }>([
+      {
+        $match: {
+          user: new Types.ObjectId(userId),
+          type: 'expense',
+          date: { $gte: from, $lte: to },
+        },
+      },
+      { $group: { _id: '$category', total: { $sum: '$amount' } } },
+    ]).exec();
+
+    return new Map(rows.map((row) => [String(row._id), row.total]));
+  }
+
   async updateForUser(
     id: string,
     userId: string,
