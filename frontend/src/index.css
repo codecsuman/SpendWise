@@ -5,6 +5,29 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* =====================================================================
+   HOW TO USE (read this first)
+
+   Wrap every page in ONE theme class:
+
+     <div className="page-wrap aurora page-login">      Login / Register  (blue)
+     <div className="page-wrap aurora page-dashboard">  Dashboard        (light green + gray)
+     <div className="page-wrap aurora page-category">   Categories       (orange + rose + yellow)
+     <div className="page-wrap aurora page-goals">      Goals            (purple + pink + gold)
+     <div className="page-wrap aurora page-analytics">  Analytics        (blue + orange + teal)
+     <div className="page-wrap aurora page-profile">    Profile / Forms  (full rainbow)
+
+   Add the word  fx  to get a different moving background on each page:
+     login = waves (own elements) | dashboard = rising bubbles | category = moving stripes
+     goals = twinkling stars | analytics = moving grid | profile = spinning rainbow glow
+
+   Inside the page, every shadcn component (Button, Input, Card) and every
+   class below automatically uses that page's colors.
+   ===================================================================== */
+
+/* =====================================================================
+   1. TAILWIND THEME MAPPING
+   ===================================================================== */
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
@@ -46,85 +69,1495 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+
+    /* Money colors: text-income, bg-expense, text-warning */
+    --color-income: var(--income);
+    --color-expense: var(--expense);
+    --color-warning: var(--warning);
+
+    /* Page colors: text-p1, bg-p2, border-p3 ... follow the page theme */
+    --color-p1: var(--p1);
+    --color-p2: var(--p2);
+    --color-p3: var(--p3);
+    --color-p4: var(--p4);
+    --color-p5: var(--p5);
 }
 
+/* =====================================================================
+   2. SPECIAL PROPERTIES (let the browser animate numbers and angles)
+   ===================================================================== */
+@property --angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@property --value {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+/* =====================================================================
+   3. DEFAULT COLORS (used when a page has no theme class)
+   ===================================================================== */
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    /* Your 4 main brand colors */
+    --blue: #2563eb;
+    --orange: #f97316;
+    --green: #4ade80;
+    --purple: #8b5cf6;
+
+    /* Money colors */
+    --income: #10b981;
+    --expense: #ef4444;
+    --warning: #f59e0b;
+
+    /* Default page colors (blue theme) */
+    --p1: #2563eb;
+    --p2: #06b6d4;
+    --p3: #f97316;
+    --p4: #8b5cf6;
+    --p5: #ec4899;
+    --p1-dark: #1e40af;
+    --on-p1: #ffffff;
+    --p-soft: #dbeafe;
+    --page-bg: #f1f5fd;
+    --grad: linear-gradient(135deg, var(--p1), var(--p2));
+    --glow: rgba(37, 99, 235, 0.35);
+
+    --background: #f1f5fd;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --popover: #ffffff;
+    --popover-foreground: #0f172a;
+    --primary: var(--p1);
+    --primary-foreground: #ffffff;
+    --secondary: #e8eefb;
+    --secondary-foreground: #0f172a;
+    --muted: #eef2f9;
+    --muted-foreground: #64748b;
+    --accent: #dbeafe;
+    --accent-foreground: #1e40af;
+    --destructive: #ef4444;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #06b6d4;
+    --chart-1: #2563eb;
+    --chart-2: #f97316;
+    --chart-3: #14b8a6;
+    --chart-4: #8b5cf6;
+    --chart-5: #ec4899;
+    --radius: 0.9rem;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #0f172a;
+    --sidebar-primary: #2563eb;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #dbeafe;
+    --sidebar-accent-foreground: #1e40af;
+    --sidebar-border: #e2e8f0;
+    --sidebar-ring: #06b6d4;
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --income: #34d399;
+    --expense: #f87171;
+    --warning: #fbbf24;
+    --page-bg: #0a1022;
+    --p-soft: #172554;
+    --glow: rgba(0, 0, 0, 0.6);
+
+    --background: #0a1022;
+    --foreground: #e8eefc;
+    --card: #111a33;
+    --card-foreground: #e8eefc;
+    --popover: #111a33;
+    --popover-foreground: #e8eefc;
+    --primary: #5b8cff;
+    --primary-foreground: #06102a;
+    --secondary: #1a2644;
+    --secondary-foreground: #e8eefc;
+    --muted: #1a2644;
+    --muted-foreground: #9aa8c4;
+    --accent: #172554;
+    --accent-foreground: #cfe0ff;
+    --destructive: #f87171;
+    --border: rgba(255, 255, 255, 0.1);
+    --input: rgba(255, 255, 255, 0.15);
+    --ring: #22d3ee;
+    --sidebar: #0d1530;
+    --sidebar-foreground: #e8eefc;
+    --sidebar-primary: #5b8cff;
+    --sidebar-primary-foreground: #06102a;
+    --sidebar-accent: #1a2644;
+    --sidebar-accent-foreground: #e8eefc;
+    --sidebar-border: rgba(255, 255, 255, 0.1);
+    --sidebar-ring: #22d3ee;
 }
 
+/* =====================================================================
+   4. PAGE THEMES  (each page = its own color mood)
+   ===================================================================== */
+
+/* ---- 4.1 LOGIN: deep blue (matches the sign-in template) ---- */
+.page-login {
+    --p1: #1161ee;
+    --p2: #22d3ee;
+    --p3: #60a5fa;
+    --p4: #818cf8;
+    --p5: #a5b4fc;
+    --p1-dark: #0b3f9e;
+    --on-p1: #ffffff;
+    --p-soft: #dbe8ff;
+    --page-bg: #0b1b3f;
+    --glow: rgba(17, 97, 238, 0.5);
+}
+.dark .page-login {
+    --page-bg: #07122b;
+    --p-soft: #0f2a5c;
+    --card: #0f1c2e;
+    --glow: rgba(0, 0, 0, 0.6);
+}
+
+/* ---- 4.2 DASHBOARD: light green + gray ---- */
+.page-dashboard {
+    --p1: #22c55e;
+    --p2: #86efac;
+    --p3: #94a3b8;
+    --p4: #64748b;
+    --p5: #4ade80;
+    --p1-dark: #15803d;
+    --on-p1: #052e16;
+    --p-soft: #dcfce7;
+    --page-bg: #f1f5f2;
+    --glow: rgba(34, 197, 94, 0.35);
+    --secondary: #e7eee9;
+    --muted: #e9efeb;
+    --muted-foreground: #5b6b62;
+    --chart-1: #22c55e;
+    --chart-2: #94a3b8;
+    --chart-3: #86efac;
+    --chart-4: #64748b;
+    --chart-5: #4ade80;
+}
+.dark .page-dashboard {
+    --page-bg: #0c1411;
+    --card: #121c17;
+    --p-soft: #14301f;
+    --secondary: #17241d;
+    --muted: #17241d;
+    --accent: #14301f;
+    --accent-foreground: #bbf7d0;
+    --muted-foreground: #9db1a5;
+    --primary: #4ade80;
+    --primary-foreground: #052e16;
+    --sidebar: #0e1914;
+    --sidebar-accent: #17241d;
+}
+
+/* ---- 4.3 CATEGORIES: orange + rose + sunny yellow ---- */
+.page-category {
+    --p1: #ea580c;
+    --p2: #f43f5e;
+    --p3: #facc15;
+    --p4: #fb923c;
+    --p5: #f472b6;
+    --p1-dark: #9a3412;
+    --on-p1: #ffffff;
+    --p-soft: #ffedd5;
+    --page-bg: #fff7ed;
+    --glow: rgba(234, 88, 12, 0.35);
+    --secondary: #ffedd5;
+    --muted: #fdf0e3;
+    --muted-foreground: #7c5a45;
+    --ring: #f43f5e;
+    --chart-1: #ea580c;
+    --chart-2: #f43f5e;
+    --chart-3: #facc15;
+    --chart-4: #fb923c;
+    --chart-5: #f472b6;
+}
+.dark .page-category {
+    --page-bg: #1a0f0a;
+    --card: #25160e;
+    --p-soft: #3a1f10;
+    --secondary: #2e1b11;
+    --muted: #2e1b11;
+    --accent: #3a1f10;
+    --accent-foreground: #fed7aa;
+    --muted-foreground: #c9a48d;
+    --primary: #fb923c;
+    --primary-foreground: #2a1005;
+    --sidebar: #1e120b;
+}
+
+/* ---- 4.4 GOALS: purple + pink + gold ---- */
+.page-goals {
+    --p1: #8b5cf6;
+    --p2: #d946ef;
+    --p3: #f59e0b;
+    --p4: #6366f1;
+    --p5: #f472b6;
+    --p1-dark: #5b21b6;
+    --on-p1: #ffffff;
+    --p-soft: #ede9fe;
+    --page-bg: #f8f5ff;
+    --glow: rgba(139, 92, 246, 0.35);
+    --secondary: #ede9fe;
+    --muted: #f1ecfc;
+    --muted-foreground: #6b5f8a;
+    --ring: #d946ef;
+    --chart-1: #8b5cf6;
+    --chart-2: #d946ef;
+    --chart-3: #f59e0b;
+    --chart-4: #6366f1;
+    --chart-5: #f472b6;
+}
+.dark .page-goals {
+    --page-bg: #120d22;
+    --card: #1b1433;
+    --p-soft: #2a1f4d;
+    --secondary: #221a3f;
+    --muted: #221a3f;
+    --accent: #2a1f4d;
+    --accent-foreground: #ddd6fe;
+    --muted-foreground: #b3a6d6;
+    --primary: #a78bfa;
+    --primary-foreground: #1a0b3b;
+    --sidebar: #160f2a;
+}
+
+/* ---- 4.5 ANALYTICS: blue + orange + teal (best for charts) ---- */
+.page-analytics {
+    --p1: #2563eb;
+    --p2: #f97316;
+    --p3: #14b8a6;
+    --p4: #a855f7;
+    --p5: #ec4899;
+    --p1-dark: #1e40af;
+    --on-p1: #ffffff;
+    --p-soft: #dbeafe;
+    --page-bg: #eff4ff;
+    --glow: rgba(37, 99, 235, 0.35);
+    --ring: #f97316;
+    --grad: linear-gradient(135deg, var(--p1), var(--p3));
+}
+.dark .page-analytics {
+    --page-bg: #0a1022;
+    --card: #111a33;
+    --p-soft: #172554;
+}
+
+/* ---- 4.6 PROFILE + FORMS: full rainbow, most colorful ---- */
+.page-profile {
+    --p1: #7c3aed;
+    --p2: #ec4899;
+    --p3: #f97316;
+    --p4: #22c55e;
+    --p5: #2563eb;
+    --p1-dark: #5b21b6;
+    --on-p1: #ffffff;
+    --p-soft: #fae8ff;
+    --page-bg: #fdf6ff;
+    --glow: rgba(236, 72, 153, 0.35);
+    --grad: linear-gradient(120deg, var(--p1), var(--p2), var(--p3), var(--p4), var(--p5));
+    --secondary: #f7e9fb;
+    --muted: #f8eefb;
+    --muted-foreground: #735f86;
+    --ring: #ec4899;
+    --chart-1: #7c3aed;
+    --chart-2: #ec4899;
+    --chart-3: #f97316;
+    --chart-4: #22c55e;
+    --chart-5: #2563eb;
+}
+.dark .page-profile {
+    --page-bg: #150b1f;
+    --card: #201030;
+    --p-soft: #34174d;
+    --secondary: #281640;
+    --muted: #281640;
+    --accent: #34174d;
+    --accent-foreground: #f5d0fe;
+    --muted-foreground: #c4a8d8;
+    --primary: #c084fc;
+    --primary-foreground: #1f0a33;
+    --sidebar: #1a0d29;
+}
+
+/* ---- 4.7 What every page theme shares ---- */
+.page-login,
+.page-dashboard,
+.page-category,
+.page-goals,
+.page-analytics,
+.page-profile {
+    --grad: var(--grad-override, linear-gradient(135deg, var(--p1), var(--p2)));
+    --background: var(--page-bg);
+    --primary: var(--p1);
+    --primary-foreground: var(--on-p1);
+    --accent: var(--p-soft);
+    --accent-foreground: var(--p1-dark);
+    --sidebar-primary: var(--p1);
+    --sidebar-primary-foreground: var(--on-p1);
+    --sidebar-ring: var(--ring);
+    background: var(--page-bg);
+}
+.page-analytics { --grad-override: linear-gradient(135deg, var(--p1), var(--p3)); }
+.page-profile   { --grad-override: linear-gradient(120deg, var(--p1), var(--p2), var(--p3), var(--p4), var(--p5)); }
+
+/* In dark mode, buttons need lighter colors */
+.dark .page-login,
+.dark .page-analytics {
+    --primary: #5b8cff;
+    --primary-foreground: #06102a;
+    --accent-foreground: #cfe0ff;
+}
+.dark .page-login { --primary: #38a9ec; }
+
+/* =====================================================================
+   5. BASE STYLES
+   ===================================================================== */
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
     @apply bg-background text-foreground;
-    }
+  }
   html {
     @apply font-sans;
-    }
+    scroll-behavior: smooth;
+  }
+}
+
+/* =====================================================================
+   6. PAGE WRAPPER + MOVING BACKGROUND
+   <div className="page-wrap aurora page-dashboard"> ... </div>
+   ===================================================================== */
+.page-wrap {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+  transition: background 0.5s ease;
+}
+
+/* Soft colored blobs that slowly float behind everything */
+.aurora::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 40% at 15% 20%, color-mix(in srgb, var(--p1) 28%, transparent), transparent 70%),
+    radial-gradient(35% 35% at 85% 15%, color-mix(in srgb, var(--p2) 26%, transparent), transparent 70%),
+    radial-gradient(40% 40% at 75% 85%, color-mix(in srgb, var(--p3) 24%, transparent), transparent 70%),
+    radial-gradient(35% 35% at 10% 80%, color-mix(in srgb, var(--p4) 22%, transparent), transparent 70%);
+  animation: auroraDrift 22s ease-in-out infinite alternate;
+}
+@keyframes auroraDrift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(3%, -2%, 0) scale(1.08); }
+  100% { transform: translate3d(-3%, 3%, 0) scale(1.03); }
+}
+
+/* Optional floating shapes: <span className="float-shape" /> */
+.float-shape {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: var(--grad);
+  opacity: 0.18;
+  filter: blur(2px);
+  animation: floatY 7s ease-in-out infinite;
+}
+@keyframes floatY {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-22px) rotate(8deg); }
+}
+.float { animation: floatY 6s ease-in-out infinite; }
+
+/* =====================================================================
+   7. TEXT + HERO
+   ===================================================================== */
+/* Gradient text:  <h1 className="text-gradient"> */
+.text-gradient {
+  background: var(--grad);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradientMove 8s ease infinite;
+}
+
+/* Moving gradient banner */
+.hero-gradient {
+  background: var(--grad);
+  background-size: 300% 300%;
+  animation: gradientMove 12s ease infinite;
+  color: var(--on-p1);
+  border-radius: calc(var(--radius) * 1.6);
+}
+@keyframes gradientMove {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* =====================================================================
+   8. CARDS
+   ===================================================================== */
+
+/* Frosted glass card (best on top of hero-gradient) */
+.glass-card {
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* Normal card that lifts up on hover */
+.card-lift {
+  background: var(--card);
+  border-radius: 18px;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease;
+}
+.card-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 34px -12px var(--glow);
+}
+
+/* Stat card with a colored bar on top. Add .c1 .. .c5 to pick a color */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--card);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 6px 18px -10px var(--glow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: var(--bar, var(--grad));
+  background-size: 200% 100%;
+  animation: gradientMove 6s ease infinite;
+}
+.stat-card:hover { transform: translateY(-4px); box-shadow: 0 16px 30px -12px var(--glow); }
+.stat-card.c1 { --bar: var(--p1); }
+.stat-card.c2 { --bar: var(--p2); }
+.stat-card.c3 { --bar: var(--p3); }
+.stat-card.c4 { --bar: var(--p4); }
+.stat-card.c5 { --bar: var(--p5); }
+
+/* Card with a spinning rainbow border (great for the profile page) */
+.glow-border {
+  --angle: 0deg;
+  border: 2px solid transparent;
+  border-radius: 22px;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    conic-gradient(from var(--angle), var(--p1), var(--p2), var(--p3), var(--p4), var(--p5), var(--p1)) border-box;
+  animation: spinAngle 6s linear infinite;
+}
+@keyframes spinAngle {
+  to { --angle: 360deg; }
+}
+
+/* =====================================================================
+   9. ENTRANCE ANIMATIONS
+   ===================================================================== */
+.fade-up {
+  opacity: 0;
+  transform: translateY(24px);
+  animation: fadeUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Put .stagger on a parent: its children appear one by one */
+.stagger > * {
+  opacity: 0;
+  transform: translateY(24px);
+  animation: fadeUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger > *:nth-child(2) { animation-delay: 0.15s; }
+.stagger > *:nth-child(3) { animation-delay: 0.25s; }
+.stagger > *:nth-child(4) { animation-delay: 0.35s; }
+.stagger > *:nth-child(5) { animation-delay: 0.45s; }
+.stagger > *:nth-child(6) { animation-delay: 0.55s; }
+.stagger > *:nth-child(7) { animation-delay: 0.65s; }
+.stagger > *:nth-child(8) { animation-delay: 0.75s; }
+
+/* Pop in with a little bounce (modals, badges, success messages) */
+.pop-in { animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Slide in from the left (sidebar items, list rows) */
+.slide-in { animation: slideIn 0.6s ease both; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* =====================================================================
+   10. BUTTONS
+   ===================================================================== */
+
+/* Gradient button with a light that sweeps across on hover */
+.btn-brand {
+  position: relative;
+  overflow: hidden;
+  background: var(--grad);
+  background-size: 200% 200%;
+  color: var(--on-p1);
+  border: none;
+  padding: 12px 28px;
+  border-radius: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-position 0.5s ease;
+  box-shadow: 0 10px 18px -10px var(--glow);
+}
+.btn-brand:hover  { transform: translateY(-2px) scale(1.03); background-position: 100% 0; }
+.btn-brand:active { transform: scale(0.96); }
+.btn-brand::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transition: left 0.6s ease;
+}
+.btn-brand:hover::after { left: 130%; }
+
+/* Outline button that fills with color on hover */
+.btn-outline {
+  position: relative;
+  padding: 11px 26px;
+  border-radius: 14px;
+  border: 2px solid var(--p1);
+  color: var(--p1-dark);
+  background: transparent;
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  z-index: 0;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+.btn-outline::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--grad);
+  transform: translateY(100%);
+  transition: transform 0.35s ease;
+  z-index: -1;
+}
+.btn-outline:hover { color: var(--on-p1); transform: translateY(-2px); }
+.btn-outline:hover::before { transform: translateY(0); }
+
+/* Ripple-like press effect for small icon buttons */
+.btn-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: var(--p-soft);
+  color: var(--p1-dark);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, color 0.25s ease;
+}
+.btn-icon:hover  { transform: scale(1.15) rotate(8deg); background: var(--p1); color: var(--on-p1); }
+.btn-icon:active { transform: scale(0.9); }
+
+/* =====================================================================
+   10b. 3D PUSH BUTTON  (press it and it goes down, like a real key)
+   <button className="btn-3d">Save</button>
+   It takes the color of the page automatically.
+   Other colors: blue green orange purple pink gray red
+   Sizes: sm lg block   Example: className="btn-3d orange lg"
+   ===================================================================== */
+.btn-3d {
+  --btn: var(--p1);
+  --edge: color-mix(in srgb, var(--btn) 50%, black);
+  --hi: color-mix(in srgb, var(--btn) 35%, white);
+  --lift: 8px;
+  position: relative;
+  display: inline-block;
+  border: none;
+  cursor: pointer;
+  padding: 14px 34px;
+  margin-bottom: var(--lift);
+  border-radius: 12px;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.3px;
+  text-align: center;
+  color: var(--on-btn, var(--on-p1));
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+  background: var(--btn-bg, var(--btn));
+  box-shadow:
+    inset 0 1px 0 var(--hi),
+    0 var(--lift) 0 var(--edge),
+    0 calc(var(--lift) + 6px) 14px -2px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-3d:hover {
+  filter: brightness(1.07);
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 var(--hi),
+    0 calc(var(--lift) + 2px) 0 var(--edge),
+    0 calc(var(--lift) + 9px) 16px -2px rgba(0, 0, 0, 0.35);
+}
+.btn-3d:active {
+  filter: brightness(0.93);
+  transform: translateY(calc(var(--lift) - 2px));
+  box-shadow:
+    inset 0 1px 0 var(--hi),
+    0 2px 0 var(--edge),
+    0 4px 8px -2px rgba(0, 0, 0, 0.35);
+}
+.btn-3d:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--btn) 45%, white);
+  outline-offset: 3px;
+}
+.btn-3d:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+  transform: none;
+}
+
+/* Profile page: rainbow face */
+.page-profile .btn-3d {
+  --btn: var(--p2);
+  --btn-bg: linear-gradient(120deg, var(--p1), var(--p2), var(--p3));
+}
+
+/* Fixed colors (they also turn off the rainbow face) */
+.btn-3d.blue   { --btn: #2563eb; --on-btn: #fff; }
+.btn-3d.green  { --btn: #4ade80; --on-btn: #14532d; }
+.btn-3d.orange { --btn: #ff9f1c; --on-btn: #fff; }
+.btn-3d.purple { --btn: #8b5cf6; --on-btn: #fff; }
+.btn-3d.pink   { --btn: #ec4899; --on-btn: #fff; }
+.btn-3d.gray   { --btn: #64748b; --on-btn: #fff; }
+.btn-3d.red    { --btn: #ef4444; --on-btn: #fff; }
+.btn-3d.blue, .btn-3d.green, .btn-3d.orange, .btn-3d.purple,
+.btn-3d.pink, .btn-3d.gray, .btn-3d.red { --btn-bg: var(--btn); }
+
+/* Sizes */
+.btn-3d.sm    { padding: 9px 22px; font-size: 14px; --lift: 6px; }
+.btn-3d.lg    { padding: 18px 44px; font-size: 22px; --lift: 10px; }
+.btn-3d.block { display: block; width: calc(100% - 0px); }
+
+/* =====================================================================
+   11. PROGRESS: bar, ring, bars for charts
+   ===================================================================== */
+
+/* Bar:  <div className="progress-track"><div className="progress-fill ok" style={{width:"60%"}} /></div> */
+.progress-track {
+  background: var(--muted);
+  border-radius: 20px;
+  height: 12px;
+  overflow: hidden;
+}
+.progress-fill {
+  position: relative;
+  height: 100%;
+  border-radius: 20px;
+  background: var(--grad);
+  animation: fillIn 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  overflow: hidden;
+}
+.progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 2.2s ease-in-out infinite;
+}
+.progress-fill.ok     { background: var(--income); }
+.progress-fill.warn   { background: var(--warning); }
+.progress-fill.danger { background: var(--expense); }
+@keyframes fillIn {
+  from { transform: scaleX(0); transform-origin: left; }
+  to   { transform: scaleX(1); transform-origin: left; }
+}
+@keyframes shimmer {
+  to { transform: translateX(100%); }
+}
+
+/* Circle for Goals:  <div className="ring-progress" style={{"--target": 72}}><span>72%</span></div> */
+.ring-progress {
+  --value: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 120px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(var(--p1), var(--p2) calc(var(--value) * 1%), var(--muted) 0);
+  animation: ringFill 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  font-weight: 800;
+  color: var(--p1-dark);
+}
+.ring-progress::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: var(--card);
+}
+.ring-progress > * { position: relative; }
+@keyframes ringFill {
+  from { --value: 0; }
+  to   { --value: var(--target, 0); }
+}
+
+/* Chart bars for Analytics:  <div className="bar-grow" style={{"--h":"70%"}} /> */
+.bar-grow {
+  height: var(--h, 50%);
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(180deg, var(--bar-top, var(--p1)), var(--bar-bottom, var(--p2)));
+  transform-origin: bottom;
+  animation: barGrow 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+.bar-grow:hover { filter: brightness(1.15); transform: scaleY(1.03); }
+.bar-grow:nth-child(2) { --bar-top: var(--p2); --bar-bottom: var(--p5); animation-delay: 0.1s; }
+.bar-grow:nth-child(3) { --bar-top: var(--p3); --bar-bottom: var(--p1); animation-delay: 0.2s; }
+.bar-grow:nth-child(4) { --bar-top: var(--p4); --bar-bottom: var(--p2); animation-delay: 0.3s; }
+.bar-grow:nth-child(5) { --bar-top: var(--p5); --bar-bottom: var(--p4); animation-delay: 0.4s; }
+@keyframes barGrow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+/* =====================================================================
+   12. SMALL EXTRAS
+   ===================================================================== */
+
+/* Live dot */
+.pulse-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--income);
+  animation: pulse 1.8s infinite;
+}
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+  70%  { box-shadow: 0 0 0 14px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Money text */
+.amount-income  { color: var(--income);  font-weight: 700; }
+.amount-expense { color: var(--expense); font-weight: 700; }
+
+/* Category chips: <span className="chip chip-1">Food</span> ... chip-5 */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--chip-text, var(--p1-dark));
+  background: color-mix(in srgb, var(--chip, var(--p1)) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--chip, var(--p1)) 40%, transparent);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease;
+}
+.chip:hover { transform: translateY(-3px) scale(1.06); background: color-mix(in srgb, var(--chip, var(--p1)) 28%, transparent); }
+.chip-1 { --chip: var(--p1); }
+.chip-2 { --chip: var(--p2); }
+.chip-3 { --chip: var(--p3); }
+.chip-4 { --chip: var(--p4); }
+.chip-5 { --chip: var(--p5); }
+
+/* Profile picture with a spinning rainbow ring */
+.avatar-ring {
+  --angle: 0deg;
+  display: inline-grid;
+  place-items: center;
+  padding: 4px;
+  border-radius: 50%;
+  background: conic-gradient(from var(--angle), var(--p1), var(--p2), var(--p3), var(--p4), var(--p5), var(--p1));
+  animation: spinAngle 5s linear infinite;
+}
+.avatar-ring > img,
+.avatar-ring > div {
+  border-radius: 50%;
+  border: 4px solid var(--card);
+}
+
+/* Loading skeleton (grey shimmer box) */
+.skeleton {
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--muted) 25%, var(--p-soft) 50%, var(--muted) 75%);
+  background-size: 200% 100%;
+  animation: skeletonMove 1.4s ease infinite;
+}
+@keyframes skeletonMove {
+  to { background-position: -200% 0; }
+}
+
+/* Form fields for the Profile page: colored line grows when you click */
+.field {
+  position: relative;
+}
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 2px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--p2);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--p2) 22%, transparent);
+  transform: translateY(-1px);
+}
+
+/* =====================================================================
+   13. LOGIN PAGE (flip Sign In / Sign Up card + animated waves)
+   Use only on the Login page. All class names start with  auth-
+   ===================================================================== */
+
+/* Full screen: moving deep-blue gradient. The waves sit at the bottom. */
+.auth-screen {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #06122e 0%, #0b2a6b 55%, #1161ee 130%);
+  background-size: 200% 200%;
+  animation: gradientMove 18s ease infinite;
+}
+
+/* On short screens the 670px card would be clipped. Let the page scroll
+   instead, and start the card at the top so its first field is reachable. */
+@media (max-height: 760px) {
+  .auth-screen {
+    place-items: start center;
+    overflow-y: auto;
+  }
+}
+
+/* ----- Waves (3 layers, different speed and direction) ----- */
+.auth-waves {
+  --wave-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,60 C150,110 350,10 600,60 C850,110 1050,10 1200,60 L1200,120 L0,120 Z'/%3E%3C/svg%3E");
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 45vh;
+  min-height: 260px;
+  z-index: 0;
+  pointer-events: none;
+}
+.auth-waves span {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: var(--wave-svg);
+  mask-image: var(--wave-svg);
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-size: 1200px 100%;
+  mask-size: 1200px 100%;
+  -webkit-mask-position: 0 100%;
+  mask-position: 0 100%;
+}
+.auth-waves span:nth-child(1) {
+  top: 30%;
+  background: rgba(255, 255, 255, 0.10);
+  animation: waveRight 9s linear infinite;
+}
+.auth-waves span:nth-child(2) {
+  top: 18%;
+  background: rgba(34, 211, 238, 0.30);
+  animation: waveLeft 13s linear infinite;
+}
+.auth-waves span:nth-child(3) {
+  top: 0;
+  background: rgba(17, 97, 238, 0.55);
+  animation: waveRight 19s linear infinite;
+}
+@keyframes waveRight {
+  from { -webkit-mask-position: 0 100%;      mask-position: 0 100%; }
+  to   { -webkit-mask-position: 1200px 100%; mask-position: 1200px 100%; }
+}
+@keyframes waveLeft {
+  from { -webkit-mask-position: 1200px 100%; mask-position: 1200px 100%; }
+  to   { -webkit-mask-position: 0 100%;      mask-position: 0 100%; }
+}
+
+/* ----- The card ----- */
+.auth-wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 480px;
+  min-height: 670px;
+  border-radius: 28px;
+  overflow: hidden;
+  background: rgba(40, 57, 101, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
+  animation: popIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  color: #6a6f8c;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 18px;
+}
+.auth-wrap *,
+.auth-wrap *::before,
+.auth-wrap *::after { box-sizing: border-box; }
+.auth-wrap a { color: inherit; text-decoration: none; }
+
+.auth-html {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  padding: 90px clamp(26px, 9vw, 70px) 50px;
+}
+
+/* Two panes (sign in, sign up) that flip */
+.auth-html .auth-pane {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  position: absolute;
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+  transition: all 0.4s linear;
+}
+.auth-html .auth-radio,
+.auth-form .auth-group .auth-check { display: none; }
+
+/* Tabs */
+.auth-html .auth-tab,
+.auth-form .auth-group .auth-label { text-transform: uppercase; }
+.auth-html .auth-tab {
+  font-size: 22px;
+  margin: 0 15px 10px 0;
+  padding-bottom: 5px;
+  display: inline-block;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+.auth-html .auth-tab:hover { color: #cbd5f5; }
+.auth-html .auth-in:checked + .auth-tab,
+.auth-html .auth-up:checked + .auth-tab {
+  color: #fff;
+  border-color: var(--p1);
+}
+
+/* Form area */
+.auth-form {
+  min-height: 345px;
+  position: relative;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+.auth-form .auth-group { margin-bottom: 15px; }
+.auth-form .auth-group .auth-label,
+.auth-form .auth-group .auth-input {
+  width: 100%;
+  color: #fff;
+  display: block;
+}
+.auth-form .auth-group .auth-input {
+  border: none;
+  padding: 15px 20px;
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+.auth-form .auth-group .auth-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+.auth-form .auth-group .auth-input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 0 2px var(--p1), 0 0 18px -2px var(--p2);
+}
+.auth-form .auth-group .auth-input:disabled { opacity: 0.6; }
+.auth-form .auth-group .auth-label {
+  color: #aaa;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+/* Password field with a show/hide button. The longer selector is needed to
+   beat the padding: 15px 20px rule above. */
+.auth-form .auth-group .auth-input.auth-input--password {
+  padding-right: 46px;
+}
+.auth-eye {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.auth-eye:hover { color: #fff; }
+
+/* Custom checkbox (Keep me signed in) */
+.auth-form .auth-group label .auth-icon {
+  width: 15px;
+  height: 15px;
+  border-radius: 2px;
+  position: relative;
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.1);
+  transition: background 0.2s ease;
+}
+.auth-form .auth-group label .auth-icon:before,
+.auth-form .auth-group label .auth-icon:after {
+  content: "";
+  width: 10px;
+  height: 2px;
+  background: #fff;
+  position: absolute;
+  transition: all 0.2s ease-in-out 0s;
+}
+.auth-form .auth-group label .auth-icon:before {
+  left: 3px;
+  width: 5px;
+  bottom: 6px;
+  transform: scale(0) rotate(0);
+}
+.auth-form .auth-group label .auth-icon:after {
+  top: 6px;
+  right: 0;
+  transform: scale(0) rotate(0);
+}
+.auth-form .auth-group .auth-check:checked + label { color: #fff; }
+.auth-form .auth-group .auth-check:checked + label .auth-icon { background: var(--p1); }
+.auth-form .auth-group .auth-check:checked + label .auth-icon:before { transform: scale(1) rotate(45deg); }
+.auth-form .auth-group .auth-check:checked + label .auth-icon:after  { transform: scale(1) rotate(-45deg); }
+
+/* The flip */
+.auth-html .auth-in:checked + .auth-tab + .auth-up + .auth-tab + .auth-form .auth-pane-in { transform: rotate(0); }
+.auth-html .auth-up:checked + .auth-tab + .auth-form .auth-pane-up { transform: rotate(0); }
+
+.auth-hr {
+  height: 2px;
+  margin: 60px 0 50px 0;
+  background: rgba(255, 255, 255, 0.2);
+}
+.auth-foot { text-align: center; }
+.auth-foot a { transition: color 0.2s ease; }
+.auth-foot a:hover { color: #fff; }
+.auth-foot button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.auth-foot button:hover { color: #fff; }
+
+/* Error text under a field (react-hook-form + zod) */
+.auth-error {
+  margin-top: 6px;
+  padding-left: 14px;
+  font-size: 12px;
+  color: #fca5a5;
+}
+
+/* =====================================================================
+   14. LOADERS (they take the color of the page they are on)
+   ===================================================================== */
+
+/* Spinner: <div className="spinner-loader"> + 12 x <div className="spinner-item" /> */
+.spinner-loader {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.spinner-loader .spinner-item {
+  display: block;
+  transform-origin: 40px 40px;
+  animation: spinnerFade 1.2s linear infinite;
+}
+.spinner-loader .spinner-item:after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 3px;
+  left: 37px;
+  width: 6px;
+  height: 18px;
+  border-radius: 20%;
+  background: var(--p1);
+}
+.spinner-loader .spinner-item:nth-child(1)  { transform: rotate(0deg);   animation-delay: -1.1s; }
+.spinner-loader .spinner-item:nth-child(2)  { transform: rotate(30deg);  animation-delay: -1s; }
+.spinner-loader .spinner-item:nth-child(3)  { transform: rotate(60deg);  animation-delay: -0.9s; }
+.spinner-loader .spinner-item:nth-child(4)  { transform: rotate(90deg);  animation-delay: -0.8s; }
+.spinner-loader .spinner-item:nth-child(5)  { transform: rotate(120deg); animation-delay: -0.7s; }
+.spinner-loader .spinner-item:nth-child(6)  { transform: rotate(150deg); animation-delay: -0.6s; }
+.spinner-loader .spinner-item:nth-child(7)  { transform: rotate(180deg); animation-delay: -0.5s; }
+.spinner-loader .spinner-item:nth-child(8)  { transform: rotate(210deg); animation-delay: -0.4s; }
+.spinner-loader .spinner-item:nth-child(9)  { transform: rotate(240deg); animation-delay: -0.3s; }
+.spinner-loader .spinner-item:nth-child(10) { transform: rotate(270deg); animation-delay: -0.2s; }
+.spinner-loader .spinner-item:nth-child(11) { transform: rotate(300deg); animation-delay: -0.1s; }
+.spinner-loader .spinner-item:nth-child(12) { transform: rotate(330deg); animation-delay: 0s; }
+
+/* Small version for buttons (20x20). */
+.spinner-loader--sm {
+  width: 20px;
+  height: 20px;
+}
+.spinner-loader--sm .spinner-item {
+  transform-origin: 10px 10px;
+}
+.spinner-loader--sm .spinner-item:after {
+  top: 1px;
+  left: 9px;
+  width: 2px;
+  height: 5px;
+}
+
+/* Use inside a colored button: the bars take the button's text color. */
+.spinner-loader--on-color .spinner-item:after {
+  background: currentColor;
+}
+
+@keyframes spinnerFade {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Wave: <div className="wave-loader"> + 5 x <div className="wave-bar" style={{"--i":1}} /> */
+.wave-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+}
+.wave-bar {
+  overflow: hidden;
+  background-color: var(--card);
+  margin: 0 15px;
+  height: 80px;
+  width: 20px;
+  border-radius: 30px;
+  box-shadow: 15px 15px 20px rgba(0, 0, 0, 0.1), -15px -15px 30px var(--card),
+    inset -5px -5px 10px rgba(0, 0, 255, 0.1),
+    inset 5px 5px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+.wave-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  border-radius: 100%;
+  box-shadow: inset 0px 0px 0px rgba(0, 0, 0, 0.3), 0px 420px 0 400px var(--p1),
+    inset 0px 0px 0px rgba(0, 0, 0, 0.1);
+  animation: waveMove 2.5s ease-in-out infinite;
+  animation-delay: calc(-0.5s * var(--i));
+}
+@keyframes waveMove {
+  0%   { transform: translateY(250px); }
+  50%  { transform: translateY(0); }
+  100% { transform: translateY(250px); }
+}
+
+/* =====================================================================
+   15. SEARCH INPUT + THEME SWITCH
+   ===================================================================== */
+.search-box {
+  width: 240px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to bottom, var(--p2), var(--p4));
+  border-radius: 30px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.075);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.search-box:focus-within {
+  transform: scale(1.04);
+  box-shadow: 0 10px 24px -10px var(--glow);
+}
+.search-input {
+  width: 230px;
+  height: 40px;
+  border: none;
+  outline: none;
+  caret-color: var(--p1);
+  background-color: var(--card);
+  border-radius: 30px;
+  padding-left: 15px;
+  letter-spacing: 0.8px;
+  color: var(--foreground);
+  font-size: 13.4px;
+}
+
+.theme-switch {
+  font-size: 17px;
+  position: relative;
+  display: inline-block;
+  width: 5em;
+  height: 2.5em;
+  user-select: none;
+}
+.theme-switch .cb {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.theme-switch .toggle {
+  position: absolute;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  background-color: #373737;
+  border-radius: 0.1em;
+  transition: 0.4s;
+  text-transform: uppercase;
+  font-weight: 700;
+  overflow: hidden;
+  box-shadow: -0.3em 0 0 0 #373737, -0.3em 0.3em 0 0 #373737,
+    0.3em 0 0 0 #373737, 0.3em 0.3em 0 0 #373737, 0 0.3em 0 0 #373737;
+}
+.theme-switch .toggle > .left {
+  position: absolute;
+  display: flex;
+  width: 50%;
+  height: 88%;
+  background-color: #f3f3f3;
+  color: #373737;
+  left: 0;
+  bottom: 0;
+  align-items: center;
+  justify-content: center;
+  transform-origin: right;
+  transform: rotateX(10deg);
+  transform-style: preserve-3d;
+  transition: all 150ms;
+}
+.theme-switch .left::before {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  background-color: rgb(206, 206, 206);
+  transform-origin: center left;
+  transform: rotateY(90deg);
+}
+.theme-switch .left::after {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  background-color: rgb(112, 112, 112);
+  transform-origin: center bottom;
+  transform: rotateX(90deg);
+}
+.theme-switch .toggle > .right {
+  position: absolute;
+  display: flex;
+  width: 50%;
+  height: 88%;
+  background-color: #f3f3f3;
+  color: rgb(206, 206, 206);
+  right: 1px;
+  bottom: 0;
+  align-items: center;
+  justify-content: center;
+  transform-origin: left;
+  transform: rotateX(10deg) rotateY(-45deg);
+  transform-style: preserve-3d;
+  transition: all 150ms;
+}
+.theme-switch .right::before {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  background-color: rgb(206, 206, 206);
+  transform-origin: center right;
+  transform: rotateY(-90deg);
+}
+.theme-switch .right::after {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  background-color: rgb(112, 112, 112);
+  transform-origin: center bottom;
+  transform: rotateX(90deg);
+}
+.theme-switch input:checked + .toggle > .left {
+  transform: rotateX(10deg) rotateY(45deg);
+  color: rgb(206, 206, 206);
+}
+.theme-switch input:checked + .toggle > .right {
+  transform: rotateX(10deg) rotateY(0deg);
+  color: var(--p1);
+}
+
+/* =====================================================================
+   15b. DIFFERENT MOVING BACKGROUND FOR EACH PAGE
+   Add the word  fx  next to the page class.
+   ===================================================================== */
+.fx::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Dashboard: bubbles rise slowly */
+.page-dashboard.fx::after {
+  background-image:
+    radial-gradient(circle, color-mix(in srgb, var(--p2) 55%, transparent) 0 5px, transparent 6px),
+    radial-gradient(circle, color-mix(in srgb, var(--p1) 30%, transparent) 0 9px, transparent 10px),
+    radial-gradient(circle, color-mix(in srgb, var(--p3) 40%, transparent) 0 3px, transparent 4px);
+  background-size: 170px 170px, 260px 260px, 120px 120px;
+  background-position: 20px 0, 90px 80px, 50px 30px;
+  animation: bubblesRise 26s linear infinite;
+}
+@keyframes bubblesRise {
+  to { background-position: 20px -170px, 90px -180px, 50px -90px; }
+}
+
+/* Categories: soft stripes slide sideways */
+.page-category.fx::after {
+  background-image: linear-gradient(45deg,
+    color-mix(in srgb, var(--p1) 9%, transparent) 25%, transparent 25%,
+    transparent 50%, color-mix(in srgb, var(--p1) 9%, transparent) 50%,
+    color-mix(in srgb, var(--p1) 9%, transparent) 75%, transparent 75%);
+  background-size: 64px 64px;
+  animation: stripesMove 6s linear infinite;
+}
+@keyframes stripesMove {
+  to { background-position: 64px 0; }
+}
+
+/* Goals: twinkling stars */
+.page-goals.fx::after {
+  background-image:
+    radial-gradient(4px 4px at 30px 40px, var(--p3), transparent 65%),
+    radial-gradient(5px 5px at 120px 90px, var(--p2), transparent 65%),
+    radial-gradient(4px 4px at 190px 160px, var(--p1), transparent 65%),
+    radial-gradient(4px 4px at 70px 170px, var(--p5), transparent 65%);
+  background-size: 220px 220px;
+  animation: twinkle 3.5s ease-in-out infinite alternate;
+}
+@keyframes twinkle {
+  from { opacity: 0.25; }
+  to   { opacity: 0.95; }
+}
+
+/* Analytics: a grid that slowly moves */
+.page-analytics.fx::after {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--p1) 14%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--p1) 14%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 40%, #000 25%, transparent 78%);
+  mask-image: radial-gradient(ellipse at 50% 40%, #000 25%, transparent 78%);
+  animation: gridMove 12s linear infinite;
+}
+@keyframes gridMove {
+  to { background-position: 48px 48px, 48px 48px; }
+}
+
+/* Profile: a big rainbow glow that spins */
+.page-profile.fx::after {
+  --angle: 0deg;
+  inset: 12%;
+  border-radius: 50%;
+  background: conic-gradient(from var(--angle), var(--p1), var(--p2), var(--p3), var(--p4), var(--p5), var(--p1));
+  filter: blur(90px);
+  opacity: 0.2;
+  animation: spinAngle 16s linear infinite;
+}
+
+/* Sidebar / menu links (colored by page) */
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  color: var(--foreground);
+  transition: background 0.25s ease, transform 0.25s ease, color 0.25s ease;
+}
+.nav-link:hover {
+  background: var(--p-soft);
+  color: var(--accent-foreground);
+  transform: translateX(4px);
+}
+.nav-link.active {
+  background: var(--grad);
+  color: var(--on-p1);
+  box-shadow: 0 8px 18px -10px var(--glow);
+}
+
+/* =====================================================================
+   16. ACCESSIBILITY: respect the "reduce motion" setting
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import {
   useGetMeQuery,
@@ -50,11 +50,27 @@ const navItems: NavItem[] = [
   { to: '/profile', label: 'Profile', icon: Settings },
 ]
 
+// Each route gets its own color mood from src/index.css. The theme class is
+// applied to the whole shell, so the sidebar, navbar and page all follow it.
+const pageThemes: Record<string, string> = {
+  '/dashboard': 'page-dashboard',
+  '/transactions': 'page-analytics',
+  '/categories': 'page-category',
+  '/budgets': 'page-goals',
+  '/goals': 'page-goals',
+  '/analytics': 'page-analytics',
+  '/profile': 'page-profile',
+}
+
 export default function MainLayout() {
   // Mobile: the sidebar is hidden until the menu button is pressed.
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const navigate = useNavigate()
+
+  // The current URL decides which page theme wraps the content.
+  const { pathname } = useLocation()
+  const pageTheme = pageThemes[pathname] ?? ''
 
   // The user is already cached by ProtectedRoute, so this does not refetch
   // and does not flicker.
@@ -83,7 +99,9 @@ export default function MainLayout() {
       .join('') ?? '?'
 
   return (
-    <div className="flex min-h-screen bg-muted/40">
+    // The theme lives here, not on <main>, so the sidebar links and navbar
+    // share the same page colors. `fx` adds the per-page moving background.
+    <div className={`page-wrap aurora fx ${pageTheme} flex min-h-screen`}>
       {/* Dark backdrop on mobile, tap to close */}
       {sidebarOpen && (
         <div
@@ -124,11 +142,7 @@ export default function MainLayout() {
               to={to}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                }`
+                `nav-link text-sm ${isActive ? 'active' : ''}`
               }
             >
               <Icon className="size-4 shrink-0" />
@@ -180,7 +194,7 @@ export default function MainLayout() {
           </div>
         </header>
 
-        {/* Page content */}
+        {/* Page content. The theme tokens come from the shell above. */}
         <main className="flex-1 p-4 md:p-6">
           <Outlet />
         </main>

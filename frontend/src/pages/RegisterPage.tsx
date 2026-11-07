@@ -127,7 +127,7 @@ export default function RegisterPage() {
 
   // --- THE UI (JSX) --------------------------------------------------------
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+    <main className="page-wrap aurora page-login flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-lg">
         {/* Brand header */}
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
@@ -164,7 +164,7 @@ export default function RegisterPage() {
               placeholder="Suman Jhanp"
               {...register('name')}
               disabled={busy}
-              className="h-10 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
+              className="h-10 rounded-md border border-input bg-muted px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
             />
             {errors.name && (
               <p className="text-xs text-destructive">{errors.name.message}</p>
@@ -183,7 +183,7 @@ export default function RegisterPage() {
               placeholder="you@example.com"
               {...register('email')}
               disabled={busy}
-              className="h-10 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
+              className="h-10 rounded-md border border-input bg-muted px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
             />
             {errors.email && (
               <p className="text-xs text-destructive">{errors.email.message}</p>
@@ -203,7 +203,7 @@ export default function RegisterPage() {
                 placeholder="••••••••"
                 {...register('password')}
                 disabled={busy}
-                className="h-10 w-full rounded-md border border-input bg-background px-3 pr-10 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
+                className="h-10 w-full rounded-md border border-input bg-muted px-3 pr-10 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
               />
               {/* type="button" stops this from submitting the form */}
               <button
@@ -239,7 +239,7 @@ export default function RegisterPage() {
                 placeholder="••••••••"
                 {...register('confirmPassword')}
                 disabled={busy}
-                className="h-10 w-full rounded-md border border-input bg-background px-3 pr-10 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
+                className="h-10 w-full rounded-md border border-input bg-muted px-3 pr-10 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
               />
               <button
                 type="button"

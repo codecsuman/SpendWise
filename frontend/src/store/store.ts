@@ -13,6 +13,7 @@ import { authApi } from '../features/auth/services/authApi'
 import {profileApi} from '../features/profile/services/profileApi'
 import { transactionApi } from "../features/transactions/services/transactionApi";
 import { categoryApi } from '../features/categories/services/categoryApi'
+import { budgetApi } from '../features/budgets/services/budgetApi'
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ export const store = configureStore({
     [profileApi.reducerPath]: profileApi.reducer,
     [transactionApi.reducerPath]: transactionApi.reducer,
     [categoryApi.reducerPath]: categoryApi.reducer,
+    [budgetApi.reducerPath]: budgetApi.reducer,
   },
 
   // RTK Query ships as middleware. Without this line, caching, invalidation
@@ -31,7 +33,8 @@ export const store = configureStore({
       authApi.middleware,
       profileApi.middleware,
       transactionApi.middleware,
-      categoryApi.middleware
+      categoryApi.middleware,
+      budgetApi.middleware
     ),
 })
 

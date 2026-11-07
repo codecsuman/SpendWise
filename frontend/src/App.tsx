@@ -24,11 +24,14 @@ import TransactionsPage from './pages/TransactionsPage'
 // Manage the labels transactions are filed under.
 import CategoriesPage from './pages/CategoriesPage'
 
+// Monthly spending limits per category.
+import BudgetsPage from './pages/BudgetsPage'
+
 // A component is just a function that returns JSX (the UI).
 // Home is our landing page component.
 function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6">
+    <main className="page-wrap aurora fx page-analytics flex min-h-screen flex-col items-center justify-center gap-6">
       <h1 className="text-3xl font-bold">SpendWise</h1>
       <p className="text-muted-foreground">Welcome to your finance dashboard</p>
       {/* Link is like an <a> tag, but it changes the URL WITHOUT reloading the page */}
@@ -40,14 +43,16 @@ function Home() {
 }
 
 // Dashboard page component. Later this will hold the real cards and charts.
+// The shell (MainLayout) already supplies the page-dashboard theme and
+// background, so this component is only the content inside it.
 function Dashboard() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6">
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6">
       <h1 className="text-3xl font-bold">Dashboard</h1>
       <p className="text-muted-foreground">
         Your Income, Expense and Savings cards will live here.
       </p>
-    </main>
+    </div>
   )
 }
 
@@ -78,6 +83,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/budgets" element={<BudgetsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>
