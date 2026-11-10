@@ -39,6 +39,9 @@ import AnalyticsPage from './pages/AnalyticsPage'
 // Notes, folders, linked records and a calculator.
 import WorkspacePage from './pages/WorkspacePage'
 
+// Bills and income that repeat on a schedule.
+import RecurringPage from './pages/RecurringPage'
+
 // A component is just a function that returns JSX (the UI).
 // Home is our landing page component.
 function Home() {
@@ -86,6 +89,7 @@ function App() {
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/budgets" element={<BudgetsPage />} />
             <Route path="/goals" element={<GoalsPage />} />
+            <Route path="/recurring" element={<RecurringPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/workspace" element={<WorkspacePage />} />
             <Route path="/workspace/:noteId" element={<WorkspacePage />} />

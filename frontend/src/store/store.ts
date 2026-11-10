@@ -17,6 +17,7 @@ import { budgetApi } from '../features/budgets/services/budgetApi'
 import { analyticsApi } from '../features/analytics/services/analyticsApi'
 import { goalApi } from '../features/goals/services/goalApi'
 import { workspaceApi } from '../features/workspace/services/workspaceApi'
+import { recurringApi } from '../features/recurring/services/recurringApi'
 
 export const store = configureStore({
   reducer: {
@@ -30,6 +31,7 @@ export const store = configureStore({
     [analyticsApi.reducerPath]: analyticsApi.reducer,
     [goalApi.reducerPath]: goalApi.reducer,
     [workspaceApi.reducerPath]: workspaceApi.reducer,
+    [recurringApi.reducerPath]: recurringApi.reducer,
   },
 
   // RTK Query ships as middleware. Without this line, caching, invalidation
@@ -43,7 +45,8 @@ export const store = configureStore({
       budgetApi.middleware,
       analyticsApi.middleware,
       goalApi.middleware,
-      workspaceApi.middleware
+      workspaceApi.middleware,
+      recurringApi.middleware
     ),
 })
 

@@ -1,7 +1,7 @@
 # SpendWise UI + CSS Style Guide
 
 **Source of truth:** `frontend/src/index.css`
-**Last updated:** 2026-11-08
+**Last updated:** 2026-11-11
 
 This file records **which page uses which theme and which CSS classes**. Update it
 whenever you add a page, a component, or a new helper class. The CSS file is the
@@ -26,6 +26,7 @@ background. Add `aurora` for the soft floating color blobs.
 | Budgets `/budgets` | `page-goals` | Twinkling stars | Purple | `MainLayout.tsx` | Real page |
 | Profile `/profile` | `page-profile` | Spinning rainbow glow | Rainbow | `MainLayout.tsx` | Real page |
 | Goals `/goals` | `page-goals` | Twinkling stars | Purple | `MainLayout.tsx` | Real page |
+| Recurring `/recurring` | `page-goals` | Twinkling stars | Purple | `MainLayout.tsx` | Real page |
 | Analytics `/analytics` | `page-analytics` | Moving grid | Blue | `MainLayout.tsx` | Real page |
 | Workspace `/workspace` | `page-workspace` | None (no `.fx` rule, stays calm) | Teal | `MainLayout.tsx` | Real page |
 
@@ -240,6 +241,15 @@ and Delete only. Do not use red for normal actions.
   through `components/layout/GlobalQuickActions.tsx`).
 - The editor auto-saves 800 ms after typing stops. Calculator history is kept
   in `localStorage`, not the backend.
+
+### Recurring — `pages/RecurringPage.tsx`
+- Content only. The shell supplies `page-goals` and the stars.
+- Stats: `stat-card c1..c4`; rules: `features/recurring/components/RecurringCard.tsx`
+  (`card-lift`), form: `RecurringForm.tsx` (same input classes as Budgets/Goals).
+- Amount uses `amount-income` / `amount-expense`; the category badge tints
+  itself from the category's own `color` field (not a fixed hex).
+- Pause/resume and delete are icon buttons on the card; delete is the only red one.
+- `isActive` is sent to the API as `'true'` / `'false'` text, never a boolean.
 
 ### Transactions / Categories / Budgets / Profile
 - Content only. The shell supplies the theme.

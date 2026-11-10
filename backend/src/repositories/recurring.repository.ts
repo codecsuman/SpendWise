@@ -110,15 +110,20 @@ export class RecurringTransactionRepository {
 
   // After a rule fires: move nextRunAt forward and record the run.
   // Not user-scoped because the worker already holds the document it just used.
+  // `isActive` is only written when the caller passes it (the last run stops
+  // the rule instead of scheduling a date past endDate).
   async advanceSchedule(
     id: string,
     lastRunAt: Date,
-    nextRunAt: Date
+    nextRunAt: Date,
+    isActive?: boolean
   ): Promise<IRecurringTransaction | null> {
-    return RecurringTransaction.findByIdAndUpdate(
-      id,
-      { lastRunAt, nextRunAt },
-      { new: true }
-    ).exec();
+    const changes: UpdateQuery<IRecurringTransaction> = { lastRunAt, nextRunAt };
+
+    if (typeof isActive === 'boolean') changes.isActive = isActive;
+
+    return RecurringTransaction.findByIdAndUpdate(id, changes, {
+      new: true,
+    }).exec();
   }
 }
