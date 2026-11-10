@@ -10,6 +10,9 @@ import userRouter from './routes/user.routes.js'
 import transactionRouter from './routes/transaction.routes.js'
 import categoryRouter from './routes/category.routes.js'
 import budgetRouter from './routes/budget.routes.js'
+import analyticsRouter from './routes/analytics.routes.js'
+import goalRouter from './routes/goal.routes.js'
+import workspaceRouter from './routes/workspace.routes.js'
 const app = express();
 
 app.use(helmet());
@@ -44,6 +47,12 @@ app.use('/api/transactions', transactionRouter);
 app.use('/api/categories', categoryRouter);
 
 app.use('/api/budgets', budgetRouter);
+
+app.use('/api/analytics', analyticsRouter);
+
+app.use('/api/goals', goalRouter);
+
+app.use('/api/workspace', workspaceRouter);
 
 // 404 handler (must be after all routes)
 app.use(notFoundMiddleware);

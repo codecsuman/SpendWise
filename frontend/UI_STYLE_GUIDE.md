@@ -25,8 +25,9 @@ background. Add `aurora` for the soft floating color blobs.
 | Categories `/categories` | `page-category` | Moving stripes | Orange | `MainLayout.tsx` | Real page |
 | Budgets `/budgets` | `page-goals` | Twinkling stars | Purple | `MainLayout.tsx` | Real page |
 | Profile `/profile` | `page-profile` | Spinning rainbow glow | Rainbow | `MainLayout.tsx` | Real page |
-| Goals `/goals` | `page-goals` | Twinkling stars | Purple | Not routed yet | Planned |
-| Analytics `/analytics` | `page-analytics` | Moving grid | Blue | Not routed yet | Planned |
+| Goals `/goals` | `page-goals` | Twinkling stars | Purple | `MainLayout.tsx` | Real page |
+| Analytics `/analytics` | `page-analytics` | Moving grid | Blue | `MainLayout.tsx` | Real page |
+| Workspace `/workspace` | `page-workspace` | None (no `.fx` rule, stays calm) | Teal | `MainLayout.tsx` | Real page |
 
 The route → theme map is `pageThemes` in `components/layout/MainLayout.tsx`.
 The theme class is on the **shell**, not on `<main>`, so the sidebar links and
@@ -219,6 +220,27 @@ and Delete only. Do not use red for normal actions.
 - Content only. The shell supplies `page-dashboard` and the bubbles.
 - Do not add another `page-wrap` here.
 
+### Goals — `pages/GoalsPage.tsx`
+- Content only. The shell supplies `page-goals` and the stars.
+- Stats: `stat-card c1..c4`; goal cards: `card-lift`
+- Progress: `ring-progress` (inline `--target`) + `progress-track` / `progress-fill`
+- Chart: `components/charts/GoalProgressChart.tsx` (percent bars, 100% dashed line)
+- Main actions: `btn-3d sm`; the form reuses the same input classes as Budgets
+
+### Workspace — `pages/WorkspacePage.tsx`
+- Content only. The shell supplies `page-workspace` (teal + indigo).
+- No `.page-workspace.fx::after` rule exists, so the shell's `fx` class adds no
+  moving background. This is intentional: the writing page stays calm.
+- Layout: `features/workspace/components/WorkspaceSidebar` + `NotesGrid` +
+  `NoteEditor`. It collapses to one panel on mobile.
+- Cards: `NoteCard` uses `card` + `border-border`; the color label uses
+  `bg-p1..p5` from the note color map.
+- Search/filters: `NoteSearch`, `NoteFilters`.
+- Overlays: `QuickNoteDialog` and `CalculatorPanel` (both also mounted globally
+  through `components/layout/GlobalQuickActions.tsx`).
+- The editor auto-saves 800 ms after typing stops. Calculator history is kept
+  in `localStorage`, not the backend.
+
 ### Transactions / Categories / Budgets / Profile
 - Content only. The shell supplies the theme.
 - They currently use Tailwind utilities. The helper classes in section 4 are
@@ -276,7 +298,6 @@ and Delete only. Do not use red for normal actions.
 - [ ] "Keep me signed in" is visual only; the backend always issues the same
       7-day refresh cookie.
 - [ ] "Forgot Password?" only shows a placeholder message; there is no reset flow yet.
-- [ ] `/goals` and `/analytics` are in the theme map but have no routes yet.
 - [ ] Pages still use Tailwind utilities; migrate them to the helper classes
       gradually (cards, buttons, progress).
 - [ ] The login page has both Sign In and Sign Up tabs. The separate `/register`

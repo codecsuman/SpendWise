@@ -385,13 +385,55 @@
     --sidebar: #1a0d29;
 }
 
-/* ---- 4.7 What every page theme shares ---- */
+/* ---- 4.7 WORKSPACE: teal + indigo, calm colors for writing ---- */
+.page-workspace {
+    --p1: #0d9488;
+    --p2: #6366f1;
+    --p3: #f59e0b;
+    --p4: #ec4899;
+    --p5: #22c55e;
+    --p1-dark: #115e59;
+    --on-p1: #ffffff;
+    --p-soft: #ccfbf1;
+    --page-bg: #f0fdfa;
+    --glow: rgba(13, 148, 136, 0.35);
+
+    --secondary: #ccfbf1;
+    --muted: #e7f8f5;
+    --muted-foreground: #4f6f6b;
+    --ring: #6366f1;
+
+    --chart-1: #0d9488;
+    --chart-2: #6366f1;
+    --chart-3: #f59e0b;
+    --chart-4: #ec4899;
+    --chart-5: #22c55e;
+}
+
+.dark .page-workspace {
+    --page-bg: #071613;
+    --card: #0f201d;
+    --p-soft: #123a34;
+    --secondary: #14302b;
+    --muted: #14302b;
+    --accent: #123a34;
+    --accent-foreground: #99f6e4;
+    --muted-foreground: #9db8b3;
+    --primary: #2dd4bf;
+    --primary-foreground: #042f2e;
+    --sidebar: #0a1b18;
+    --sidebar-accent: #14302b;
+    --ring: #818cf8;
+}
+
+/* ---- 4.8 What every page theme shares ---- */
 .page-login,
 .page-dashboard,
 .page-category,
 .page-goals,
 .page-analytics,
-.page-profile {
+.page-profile,
+.page-workspace {
     --grad: var(--grad-override, linear-gradient(135deg, var(--p1), var(--p2)));
     --background: var(--page-bg);
     --primary: var(--p1);

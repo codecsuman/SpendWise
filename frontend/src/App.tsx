@@ -27,6 +27,18 @@ import CategoriesPage from './pages/CategoriesPage'
 // Monthly spending limits per category.
 import BudgetsPage from './pages/BudgetsPage'
 
+// Savings goals: target amount, saved amount and a target date.
+import GoalsPage from './pages/GoalsPage'
+
+// The first screen after login: totals, trend and category split.
+import DashboardPage from './pages/DashboardPage'
+
+// Deeper view: category donut + multi-month income/expense trend.
+import AnalyticsPage from './pages/AnalyticsPage'
+
+// Notes, folders, linked records and a calculator.
+import WorkspacePage from './pages/WorkspacePage'
+
 // A component is just a function that returns JSX (the UI).
 // Home is our landing page component.
 function Home() {
@@ -42,19 +54,8 @@ function Home() {
   )
 }
 
-// Dashboard page component. Later this will hold the real cards and charts.
-// The shell (MainLayout) already supplies the page-dashboard theme and
-// background, so this component is only the content inside it.
-function Dashboard() {
-  return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
-      <p className="text-muted-foreground">
-        Your Income, Expense and Savings cards will live here.
-      </p>
-    </div>
-  )
-}
+// Dashboard page component. The shell (MainLayout) already supplies the
+// page-dashboard theme and background, so the page only supplies the content.
 
 // The login page now lives in ./pages/LoginPage.tsx and is imported above.
 
@@ -80,10 +81,14 @@ function App() {
           {/* Logged in -> wrap the page in the app shell (sidebar + navbar).
               Keep ProtectedRoute outside: a guest must never see the shell. */}
           <Route element={<MainLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/budgets" element={<BudgetsPage />} />
+            <Route path="/goals" element={<GoalsPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/workspace" element={<WorkspacePage />} />
+            <Route path="/workspace/:noteId" element={<WorkspacePage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>

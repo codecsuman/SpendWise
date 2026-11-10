@@ -16,6 +16,7 @@ import {
   LogOut,
   Menu,
   Settings,
+  StickyNote,
   Tags,
   Target,
   TrendingUp,
@@ -30,6 +31,7 @@ import {
   useGetMeQuery,
   useLogoutMutation,
 } from '../../features/auth/services/authApi'
+import GlobalQuickActions from './GlobalQuickActions'
 
 // One entry per page in the sidebar.
 // `to` must match a <Route path="..."> in App.tsx, otherwise the catch-all
@@ -47,6 +49,7 @@ const navItems: NavItem[] = [
   { to: '/budgets', label: 'Budgets', icon: Wallet },
   { to: '/goals', label: 'Goals', icon: Target },
   { to: '/analytics', label: 'Analytics', icon: TrendingUp },
+  { to: '/workspace', label: 'Workspace', icon: StickyNote },
   { to: '/profile', label: 'Profile', icon: Settings },
 ]
 
@@ -59,6 +62,7 @@ const pageThemes: Record<string, string> = {
   '/budgets': 'page-goals',
   '/goals': 'page-goals',
   '/analytics': 'page-analytics',
+  '/workspace': 'page-workspace',
   '/profile': 'page-profile',
 }
 
@@ -70,7 +74,10 @@ export default function MainLayout() {
 
   // The current URL decides which page theme wraps the content.
   const { pathname } = useLocation()
-  const pageTheme = pageThemes[pathname] ?? ''
+  // /workspace/:noteId is a child of /workspace, so match the prefix too.
+  const pageTheme =
+    pageThemes[pathname] ??
+    (pathname.startsWith('/workspace') ? 'page-workspace' : '')
 
   // The user is already cached by ProtectedRoute, so this does not refetch
   // and does not flicker.
@@ -199,6 +206,9 @@ export default function MainLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Quick Note + Calculator are available on every authenticated page. */}
+      <GlobalQuickActions />
     </div>
   )
 }
