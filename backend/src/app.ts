@@ -13,6 +13,7 @@ import budgetRouter from './routes/budget.routes.js'
 import analyticsRouter from './routes/analytics.routes.js'
 import goalRouter from './routes/goal.routes.js'
 import workspaceRouter from './routes/workspace.routes.js'
+import recurringRouter from './routes/recurring.routes.js'
 const app = express();
 
 app.use(helmet());
@@ -53,6 +54,8 @@ app.use('/api/analytics', analyticsRouter);
 app.use('/api/goals', goalRouter);
 
 app.use('/api/workspace', workspaceRouter);
+
+app.use('/api/recurring', recurringRouter);
 
 // 404 handler (must be after all routes)
 app.use(notFoundMiddleware);
