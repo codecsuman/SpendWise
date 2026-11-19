@@ -101,6 +101,8 @@
    3. DEFAULT COLORS (used when a page has no theme class)
    ===================================================================== */
 :root {
+    color-scheme: light;
+
     /* Your 4 main brand colors */
     --blue: #2563eb;
     --orange: #f97316;
@@ -160,6 +162,7 @@
 }
 
 .dark {
+    color-scheme: dark;
     --income: #34d399;
     --expense: #f87171;
     --warning: #fbbf24;
@@ -440,8 +443,8 @@
     --primary-foreground: var(--on-p1);
     --accent: var(--p-soft);
     --accent-foreground: var(--p1-dark);
-    --sidebar-primary: var(--p1);
-    --sidebar-primary-foreground: var(--on-p1);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
     --sidebar-ring: var(--ring);
     background: var(--page-bg);
 }
@@ -471,6 +474,48 @@
     @apply font-sans;
     scroll-behavior: smooth;
   }
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .page-title {
+    @apply text-2xl font-bold tracking-tight md:text-3xl;
+  }
+
+  .surface-card {
+    @apply rounded-2xl border border-border bg-card text-card-foreground shadow-sm;
+  }
+
+  .form-control {
+    @apply min-w-0 rounded-md border border-input bg-card text-sm text-foreground;
+  }
+
+  .form-control:focus-visible {
+    border-color: var(--ring);
+  }
+
+  .form-control:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .button-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors;
+  }
+
+  .button-primary:hover:enabled {
+    @apply bg-primary/90;
+  }
+
+  .button-primary:disabled {
+    @apply cursor-not-allowed opacity-60;
+  }
+
+  .form-error {
+    @apply rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive;
+  }
 }
 
 /* =====================================================================
@@ -480,6 +525,7 @@
 .page-wrap {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   isolation: isolate;
   transition: background 0.5s ease;
 }
@@ -1000,7 +1046,7 @@
 .auth-screen {
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: clamp(12px, 4vw, 24px);
   overflow: hidden;
   background: linear-gradient(160deg, #06122e 0%, #0b2a6b 55%, #1161ee 130%);
   background-size: 200% 200%;
@@ -1091,7 +1137,7 @@
   width: 100%;
   height: 100%;
   position: absolute;
-  padding: 90px clamp(26px, 9vw, 70px) 50px;
+  padding: 90px clamp(18px, 8vw, 70px) 50px;
 }
 
 /* Two panes (sign in, sign up) that flip */
@@ -1103,17 +1149,26 @@
   position: absolute;
   transform: rotateY(180deg);
   backface-visibility: hidden;
-  transition: all 0.4s linear;
+  visibility: hidden;
+  transition: transform 0.4s linear, visibility 0s 0.2s;
 }
 .auth-html .auth-radio,
-.auth-form .auth-group .auth-check { display: none; }
+.auth-form .auth-group .auth-check {
+  @apply sr-only;
+}
+
+.auth-html .auth-radio:focus-visible + .auth-tab,
+.auth-form .auth-check:focus-visible + label {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
 
 /* Tabs */
 .auth-html .auth-tab,
 .auth-form .auth-group .auth-label { text-transform: uppercase; }
 .auth-html .auth-tab {
-  font-size: 22px;
-  margin: 0 15px 10px 0;
+  font-size: clamp(16px, 5vw, 22px);
+  margin: 0 12px 10px 0;
   padding-bottom: 5px;
   display: inline-block;
   cursor: pointer;
@@ -1218,8 +1273,8 @@
 .auth-form .auth-group .auth-check:checked + label .auth-icon:after  { transform: scale(1) rotate(-45deg); }
 
 /* The flip */
-.auth-html .auth-in:checked + .auth-tab + .auth-up + .auth-tab + .auth-form .auth-pane-in { transform: rotate(0); }
-.auth-html .auth-up:checked + .auth-tab + .auth-form .auth-pane-up { transform: rotate(0); }
+.auth-html .auth-in:checked + .auth-tab + .auth-up + .auth-tab + .auth-form .auth-pane-in { transform: rotateY(0); visibility: visible; }
+.auth-html .auth-up:checked + .auth-tab + .auth-form .auth-pane-up { transform: rotateY(0); visibility: visible; }
 
 .auth-hr {
   height: 2px;

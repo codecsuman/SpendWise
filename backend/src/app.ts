@@ -8,6 +8,7 @@ import { globalLimiter } from "./middleware/rateLimit.middleware.js";
 import authRouter from "./routes/auth.routes.js";
 import userRouter from './routes/user.routes.js'
 import transactionRouter from './routes/transaction.routes.js'
+import csvRouter from './routes/csv.routes.js'
 import categoryRouter from './routes/category.routes.js'
 import budgetRouter from './routes/budget.routes.js'
 import analyticsRouter from './routes/analytics.routes.js'
@@ -44,6 +45,9 @@ app.use("/api/auth", authRouter);
 app.use('/api/users',userRouter);
 
 app.use('/api/transactions', transactionRouter);
+
+// Prefix both CSV routes with /api/csv.
+app.use('/api/csv', csvRouter);
 
 app.use('/api/categories', categoryRouter);
 

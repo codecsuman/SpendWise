@@ -12,6 +12,7 @@
 import { ArrowLeft, ArrowRight, Loader2, Search, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import CsvPreview from '../features/csv/components/CsvPreview'
 
 import {
   useDeleteTransactionMutation,
@@ -42,7 +43,7 @@ function formatAmount(transaction: Transaction): string {
 }
 
 const selectClass =
-  'h-9 rounded-md border border-input bg-background px-2 text-sm outline-none focus:ring-2 focus:ring-ring/50'
+  'h-9 form-control px-2'
 
 export default function TransactionsPage() {
   const [page, setPage] = useState(1)
@@ -99,29 +100,32 @@ export default function TransactionsPage() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Transactions</h1>
+          <h1 className="page-title">Transactions</h1>
           <p className="text-sm text-muted-foreground">
             {pagination ? `${pagination.total} transaction(s)` : 'Loading…'}
           </p>
         </div>
       </header>
 
+      {/* Show the headers and sample rows before the user maps any columns. */}
+      <CsvPreview />
+
       {/* ---------------- FILTERS ---------------- */}
       <section className="flex flex-wrap items-center gap-2">
-        <form onSubmit={applySearch} className="flex items-center gap-2">
-          <div className="relative">
+        <form onSubmit={applySearch} className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
+          <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
             <input
               type="search"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
               placeholder="Search description…"
-              className="h-9 w-56 rounded-md border border-input bg-background pr-3 pl-8 text-sm outline-none focus:ring-2 focus:ring-ring/50"
+              className="h-9 w-full form-control sm:w-56 pr-3 pl-8"
             />
           </div>
           <button
             type="submit"
-            className="h-9 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+            className="button-primary h-9"
           >
             Search
           </button>
@@ -160,18 +164,18 @@ export default function TransactionsPage() {
       </section>
 
       {error && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {getErrorMessage(error)}
         </p>
       )}
       {deleteError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {deleteError}
         </p>
       )}
 
       {/* ---------------- TABLE ---------------- */}
-      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <section className="surface-card overflow-hidden">
         {isLoading ? (
           <div className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
             <Loader2 className="size-4 animate-spin" />
