@@ -1,6 +1,10 @@
 import { QueryFilter, Types, UpdateQuery } from 'mongoose';
 
-import { Transaction, ITransaction } from '../models/Transaction.model.js';
+import {
+  Transaction,
+  ITransaction,
+  type TransactionType,
+} from '../models/Transaction.model.js';
 import type { ListTransactionsQuery } from '../validators/transaction.validator.js';
 
 type SortOption = ListTransactionsQuery['sort'];
@@ -20,6 +24,15 @@ export interface TransactionListResult {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+// CSV import duplicate check only needs these five fields.
+export interface TransactionFingerprintRow {
+  type: TransactionType;
+  amount: number;
+  category: Types.ObjectId;
+  description?: string;
+  date: Date;
 }
 
 // A user's search text must never be treated as a regex.
@@ -134,6 +147,39 @@ export class TransactionRepository {
       new: true,
       runValidators: true,
     }).exec();
+  }
+
+  // CSV import writes up to 5,000 rows. Chunks of 500 keep one request from
+  // building a huge BSON batch and give the driver a workable size.
+  async insertManyForUser(
+    userId: string,
+    rows: Array<Partial<ITransaction>>
+  ): Promise<number> {
+    let inserted = 0;
+
+    for (let start = 0; start < rows.length; start += 500) {
+      const chunk = rows
+        .slice(start, start + 500)
+        .map((row) => ({ ...row, user: userId }));
+
+      const docs = await Transaction.insertMany(chunk, { ordered: true });
+      inserted += docs.length;
+    }
+
+    return inserted;
+  }
+
+  // Existing rows in a date range, only the fields the fingerprint uses, as
+  // plain objects (lean) so 5,000 rows do not become 5,000 Mongoose documents.
+  async findFingerprintsInRange(
+    userId: string,
+    from: Date,
+    to: Date
+  ): Promise<TransactionFingerprintRow[]> {
+    return Transaction.find({ user: userId, date: { $gte: from, $lte: to } })
+      .select('type amount category description date')
+      .lean<TransactionFingerprintRow[]>()
+      .exec();
   }
 
   async deleteForUser(id: string, userId: string): Promise<boolean> {
