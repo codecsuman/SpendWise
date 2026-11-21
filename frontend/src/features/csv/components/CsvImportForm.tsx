@@ -1,3 +1,4 @@
+import CustomSelect from '../../../components/ui/CustomSelect'
 import type { FormEvent } from 'react';
 import { useImportCsvMutation } from '../services/csvApi';
 
@@ -56,13 +57,12 @@ export default function CsvImportForm({
 
       <fieldset disabled={isLoading} className="grid gap-3 sm:grid-cols-2">
         {columnFields.map(({ name, label, required }) => (
-          <label key={name} className="flex flex-col gap-1 text-sm">
+          <label key={name} className="field-stack text-sm">
             {label}
-            <select
+            <CustomSelect
               name={name}
               required={required}
               defaultValue={suggestedColumns[name] ?? ''}
-              className="form-control h-9 px-3"
             >
               <option value="">
                 {required ? 'Choose a column' : 'Skip this field'}
@@ -70,16 +70,16 @@ export default function CsvImportForm({
               {headers.map((header) => (
                 <option key={header} value={header}>{header}</option>
               ))}
-            </select>
+            </CustomSelect>
           </label>
         ))}
 
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="field-stack text-sm">
           Transaction type
-          <select name="type" className="form-control h-9 px-3">
+          <CustomSelect name="type">
             <option value="expense">Expense</option>
             <option value="income">Income</option>
-          </select>
+          </CustomSelect>
         </label>
 
         <label className="flex items-center gap-2 text-sm">

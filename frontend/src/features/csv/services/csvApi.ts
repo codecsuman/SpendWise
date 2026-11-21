@@ -1,10 +1,9 @@
+import { API_URL } from '../../../config/api'
 import {
   transactionApi,
   type TransactionCurrency,
   type TransactionType,
 } from '../../transactions/services/transactionApi';
-
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
 
 // Mapping values are CSV header names, such as "Date" or "Amount".
 interface CsvColumnMapping {

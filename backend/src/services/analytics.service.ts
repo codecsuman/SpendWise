@@ -31,6 +31,7 @@ export interface TrendPoint {
 
 export interface AnalyticsOverview {
   month: string;
+  date?: string;
   income: number;
   expense: number;
   savings: number;
@@ -80,17 +81,20 @@ export class AnalyticsService {
     userId: string,
     query: AnalyticsQuery
   ): Promise<AnalyticsOverview> {
-    const month = query.month ?? currentMonth();
+    const month = query.date?.slice(0, 7) ?? query.month ?? currentMonth();
     const months = query.months;
 
-    const { from, to } = monthRange(month);
+    const range = monthRange(month);
+    // A selected day narrows the summary. The trend still compares full months.
+    const from = query.date ? new Date(`${query.date}T00:00:00.000Z`) : range.from;
+    const to = query.date ? new Date(`${query.date}T23:59:59.999Z`) : range.to;
     const trendStart = monthRange(shiftMonth(month, -(months - 1))).from;
 
     // The three aggregations are independent, so they run together.
     const [totals, categories, monthlyRows] = await Promise.all([
       analyticsRepository.totalsForRange(userId, from, to),
       analyticsRepository.expensesByCategory(userId, from, to),
-      analyticsRepository.monthlyTotals(userId, trendStart, to),
+      analyticsRepository.monthlyTotals(userId, trendStart, range.to),
     ]);
 
     const income = roundMoney(totals.income);
@@ -123,6 +127,7 @@ export class AnalyticsService {
 
     return {
       month,
+      date: query.date,
       income,
       expense,
       savings,

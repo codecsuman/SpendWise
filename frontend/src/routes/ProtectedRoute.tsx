@@ -24,8 +24,10 @@ export default function ProtectedRoute() {
   // instead of flashing the login page for a logged-in user.
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Checking your session…
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="terminal-status" role="status">
+          <span>Checking your session…</span>
+        </div>
       </div>
     )
   }

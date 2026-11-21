@@ -5,9 +5,9 @@
 // The server already did the maths (totals, savings, category split, trend),
 // so this file only formats numbers and draws them.
 //
-// No page-wrap here: MainLayout already supplies page-dashboard + fx.
 // ============================================================================
 
+import ReportPeriodField from '../components/ReportPeriodField'
 import { useState } from 'react'
 import {
   Bar,
@@ -58,13 +58,14 @@ function compact(value: number) {
 
 export default function DashboardPage() {
   // '' means "let the server pick the current month".
-  const [month, setMonth] = useState('')
+  const [period, setPeriod] = useState('')
 
   const { data: me } = useGetMeQuery()
   const currency = me?.user.currency ?? 'USD'
 
   const query: AnalyticsQuery = { months: 6 }
-  if (month) query.month = month
+  if (period.length === 10) query.date = period
+  else if (period) query.month = period
 
   const { data, isLoading, isFetching, isError, refetch } =
     useGetOverviewQuery(query)
@@ -94,7 +95,7 @@ export default function DashboardPage() {
   // ---------------- error ----------------
   if (isError || !overview) {
     return (
-      <div className="card-lift p-6">
+      <div className="surface-card p-6">
         <h2 className="text-lg font-semibold">Could not load your dashboard</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           The server did not answer. Check that the backend is running, then try
@@ -103,7 +104,7 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={() => refetch()}
-          className="btn-3d mt-4"
+          className="button-primary mt-4"
         >
           Try again
         </button>
@@ -119,30 +120,22 @@ export default function DashboardPage() {
       {/* ---------------- header ---------------- */}
       <div className="fade-up flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+          <h1 className="page-title">
             Dashboard
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {overview.month} · income, spending and savings at a glance
+            {overview.date ?? overview.month} · income, spending and savings at a glance
           </p>
         </div>
 
         <div className="flex items-end gap-2">
-          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-            Month
-            <input
-              type="month"
-              value={month}
-              onChange={(event) => setMonth(event.target.value)}
-              className="field rounded-lg px-3 py-2 text-sm text-foreground"
-            />
-          </label>
+          <ReportPeriodField value={period} onChange={setPeriod} />
 
-          {month && (
+          {period && (
             <button
               type="button"
-              onClick={() => setMonth('')}
-              className="btn-3d gray sm"
+              onClick={() => setPeriod('')}
+              className="button-secondary"
             >
               This month
             </button>
@@ -160,7 +153,7 @@ export default function DashboardPage() {
             {formatMoney(overview.income, currency)}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Money in for {overview.month}
+            Money in for {overview.date ?? overview.month}
           </p>
         </article>
 
@@ -172,7 +165,7 @@ export default function DashboardPage() {
             {formatMoney(overview.expense, currency)}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Money out for {overview.month}
+            Money out for {overview.date ?? overview.month}
           </p>
         </article>
 
@@ -217,15 +210,15 @@ export default function DashboardPage() {
       </div>
 
       {!hasActivity && (
-        <p className="card-lift p-4 text-sm text-muted-foreground">
-          Nothing recorded for {overview.month} yet. Add a transaction and this
+        <p className="surface-card p-4 text-sm text-muted-foreground">
+          Nothing recorded for {overview.date ?? overview.month} yet. Add a transaction and this
           page fills up on its own.
         </p>
       )}
 
       {/* ---------------- chart + categories ---------------- */}
       <div className="grid gap-4 xl:grid-cols-3">
-        <section className="card-lift p-5 xl:col-span-2">
+        <section className="surface-card p-5 xl:col-span-2">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Last 6 months</h2>
             {isFetching && <span className="pulse-dot" aria-hidden="true" />}
@@ -250,7 +243,7 @@ export default function DashboardPage() {
                 />
                 <Tooltip
                   formatter={(value) => formatMoney(Number(value), currency)}
-                  cursor={{ fill: 'rgba(0, 0, 0, 0.04)' }}
+                  cursor={{ fill: 'var(--muted)' }}
                 />
                 <Legend />
                 <Bar
@@ -263,6 +256,8 @@ export default function DashboardPage() {
                   dataKey="expense"
                   name="Expense"
                   fill="var(--expense)"
+                  stroke="var(--card)"
+                  strokeDasharray="3 2"
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
@@ -270,15 +265,15 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="card-lift p-5">
+        <section className="surface-card p-5">
           <h2 className="font-semibold">Where the money went</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Top categories in {overview.month}
+            Top categories in {overview.date ?? overview.month}
           </p>
 
           {overview.categories.length === 0 ? (
             <p className="mt-6 text-sm text-muted-foreground">
-              No expenses this month.
+              No expenses for this period.
             </p>
           ) : (
             <ul className="mt-4 space-y-4">

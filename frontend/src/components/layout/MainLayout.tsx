@@ -4,7 +4,7 @@
 // Shape:
 //   sidebar (left, fixed on desktop, slide-in on mobile)
 //   navbar  (top: menu button, session line, user chip)
-//   main    (where <Outlet /> drops the current page)
+//   main    (where <Outlet /> renders the current page)
 //
 // It is used as a *layout route* in App.tsx, so it renders once and only the
 // <Outlet /> part changes when you move between pages.
@@ -21,11 +21,12 @@ import {
   Tags,
   Target,
   TrendingUp,
+  UserRound,
   Wallet,
   X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import {
@@ -33,6 +34,8 @@ import {
   useLogoutMutation,
 } from '../../features/auth/services/authApi'
 import GlobalQuickActions from './GlobalQuickActions'
+import PageLoader from '../PageLoader'
+import { ThemeToggle } from '../ThemeControls'
 
 // One entry per page in the sidebar.
 // `to` must match a <Route path="..."> in App.tsx, otherwise the catch-all
@@ -52,35 +55,41 @@ const navItems: NavItem[] = [
   { to: '/recurring', label: 'Recurring', icon: Repeat },
   { to: '/analytics', label: 'Analytics', icon: TrendingUp },
   { to: '/workspace', label: 'Workspace', icon: StickyNote },
-  { to: '/profile', label: 'Profile', icon: Settings },
+  { to: '/profile', label: 'Profile', icon: UserRound },
+  { to: '/settings', label: 'Settings', icon: Settings },
 ]
-
-// Each route gets its own color mood from src/index.css. The theme class is
-// applied to the whole shell, so the sidebar, navbar and page all follow it.
-const pageThemes: Record<string, string> = {
-  '/dashboard': 'page-dashboard',
-  '/transactions': 'page-analytics',
-  '/categories': 'page-category',
-  '/budgets': 'page-goals',
-  '/goals': 'page-goals',
-  '/recurring': 'page-goals',
-  '/analytics': 'page-analytics',
-  '/workspace': 'page-workspace',
-  '/profile': 'page-profile',
-}
 
 export default function MainLayout() {
   // Mobile: the sidebar is hidden until the menu button is pressed.
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
 
   const navigate = useNavigate()
-
-  // The current URL decides which page theme wraps the content.
   const { pathname } = useLocation()
-  // /workspace/:noteId is a child of /workspace, so match the prefix too.
-  const pageTheme =
-    pageThemes[pathname] ??
-    (pathname.startsWith('/workspace') ? 'page-workspace' : '')
+  const page = pathname.split('/')[1]
+
+  // While the drawer is open, Escape closes it and the page behind it cannot
+  // scroll. Both keep small touch screens from getting stuck.
+  useEffect(() => {
+    if (!sidebarOpen) return
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSidebarOpen(false)
+    }
+    const menuButton = menuButtonRef.current
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKeyDown)
+    closeButtonRef.current?.focus()
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', onKeyDown)
+      // Closing the drawer returns keyboard focus to the button that opened it.
+      menuButton?.focus()
+    }
+  }, [sidebarOpen])
 
   // The user is already cached by ProtectedRoute, so this does not refetch
   // and does not flicker.
@@ -109,21 +118,20 @@ export default function MainLayout() {
       .join('') ?? '?'
 
   return (
-    // The theme lives here, not on <main>, so the sidebar links and navbar
-    // share the same page colors. `fx` adds the per-page moving background.
-    <div className={`page-wrap aurora fx ${pageTheme} flex min-h-screen`}>
+    <div className="page-wrap page-theme flex min-h-dvh" data-page={page}>
       {/* Dark backdrop on mobile, tap to close */}
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-20 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-20 theme-scrim lg:hidden"
         />
       )}
 
       {/* ---------------- SIDEBAR ---------------- */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-200 lg:static lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        id="app-sidebar"
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 max-w-[85vw] flex-col overscroll-contain border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[transform,background-color,border-color,color] duration-200 lg:static lg:max-w-none lg:translate-x-0 lg:shadow-(--sidebar-shadow) ${
+          sidebarOpen ? 'translate-x-0 shadow-(--sidebar-shadow)' : '-translate-x-full'
         }`}
       >
         {/* Brand + mobile close button */}
@@ -135,6 +143,7 @@ export default function MainLayout() {
             <span className="text-base font-semibold">SpendWise</span>
           </div>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={() => setSidebarOpen(false)}
             aria-label="Close menu"
@@ -145,7 +154,7 @@ export default function MainLayout() {
         </div>
 
         {/* Nav links */}
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
+        <nav aria-label="Main navigation" className="flex flex-1 flex-col gap-1 overflow-y-auto overscroll-contain p-3">
           {navItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -178,24 +187,30 @@ export default function MainLayout() {
       {/* ---------------- RIGHT SIDE ---------------- */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Navbar */}
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur md:px-6">
+        <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b border-border bg-card/95 px-4 backdrop-blur md:px-7">
           <button
+            ref={menuButtonRef}
             type="button"
             onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"
+            aria-expanded={sidebarOpen}
+            aria-controls="app-sidebar"
             className="text-muted-foreground hover:text-foreground lg:hidden"
           >
             <Menu className="size-5" />
           </button>
 
-          <span className="text-sm text-muted-foreground">
+          <span className="min-w-0 truncate text-sm text-muted-foreground">
             {user ? `Signed in as ${user.email}` : ''}
           </span>
 
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex shrink-0 items-center gap-3">
+            <ThemeToggle />
             {/* Avatar with initials */}
             <div className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-              {initials}
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="" className="size-full rounded-full object-cover" />
+              ) : initials}
             </div>
             <div className="hidden leading-tight sm:block">
               <p className="text-sm font-medium">{user?.name ?? 'User'}</p>
@@ -204,9 +219,11 @@ export default function MainLayout() {
           </div>
         </header>
 
-        {/* Page content. The theme tokens come from the shell above. */}
-        <main className="flex-1 p-4 md:p-6">
-          <Outlet />
+        <main className="page-container flex-1">
+          {/* Pages load on demand; the shell stays visible while a chunk downloads. */}
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
 

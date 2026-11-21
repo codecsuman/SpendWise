@@ -17,6 +17,7 @@ export const overviewSchema = z.object({
   query: z.strictObject({
     // Omit it and the service uses the current month.
     month: monthField.optional(),
+    date: z.iso.date().optional(),
     // Coerce turns "6" from the URL into the number 6.
     months: z.coerce.number().int().min(1).max(24).default(6),
   }),

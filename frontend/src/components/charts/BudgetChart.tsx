@@ -33,9 +33,9 @@ interface BudgetChartProps {
 
 // Same colours as the status badges in the list below the chart.
 const statusColor: Record<BudgetStatus, string> = {
-  normal: '#10b981',
-  warning: '#f59e0b',
-  exceeded: '#ef4444',
+  normal: 'var(--income)',
+  warning: 'var(--warning)',
+  exceeded: 'var(--expense)',
 }
 
 export default function BudgetChart({ data }: BudgetChartProps) {
@@ -73,8 +73,8 @@ export default function BudgetChart({ data }: BudgetChartProps) {
             value.length > 14 ? `${value.slice(0, 13)}…` : value
           }
         />
-        <Tooltip cursor={{ fill: 'rgba(0, 0, 0, 0.04)' }} />
-        <ReferenceLine x={100} stroke="#ef4444" strokeDasharray="4 4" />
+        <Tooltip cursor={{ fill: 'var(--muted)' }} />
+        <ReferenceLine x={100} stroke="var(--expense)" strokeDasharray="4 4" />
         <Bar dataKey="percent" name="Used" unit="%" radius={[0, 4, 4, 0]}>
           {data.map((row) => (
             <Cell key={row.name} fill={statusColor[row.status]} />

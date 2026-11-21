@@ -8,6 +8,7 @@
 // httpOnly access-token cookie and every call answers 401.
 // ============================================================================
 
+import { API_URL } from '../../../config/api'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { authApi, type AuthUser } from '../../auth/services/authApi'
 
@@ -30,8 +31,6 @@ export interface ChangePasswordInput {
   currentPassword: string
   newPassword: string
 }
-
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
 
 export const profileApi = createApi({
   reducerPath: 'profileApi',
@@ -68,6 +67,28 @@ export const profileApi = createApi({
       },
     }),
 
+    uploadAvatar: builder.mutation<UserResponse, File>({
+      query: (file) => {
+        // The browser supplies the multipart boundary for this FormData.
+        const body = new FormData()
+        body.set('file', file)
+        return { url: '/me/avatar', method: 'POST', body }
+      },
+      async onQueryStarted(_file, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(profileApi.util.updateQueryData('getProfile', undefined, (profile) => {
+            profile.user.avatarUrl = data.user.avatarUrl
+          }))
+          dispatch(authApi.util.updateQueryData('getMe', undefined, (session) => {
+            session.user.avatarUrl = data.user.avatarUrl
+          }))
+        } catch {
+          // The upload form displays the request error.
+        }
+      },
+    }),
+
     // PATCH /api/users/me/password
     changePassword: builder.mutation<
       { success: boolean; message: string },
@@ -81,5 +102,6 @@ export const profileApi = createApi({
 export const {
   useGetProfileQuery,
   useUpdateProfileMutation,
+  useUploadAvatarMutation,
   useChangePasswordMutation,
 } = profileApi

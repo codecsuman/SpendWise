@@ -8,6 +8,7 @@
 // The backend sends raw Mongoose documents here, so the id field is `_id`.
 // ============================================================================
 
+import { API_URL } from '../../../config/api'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 import type {
@@ -18,8 +19,6 @@ import type {
   NoteResponse,
   UpdateNoteInput,
 } from '../types/workspace.types'
-
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
 
 // RTK Query puts the server's JSON body on error.data. Every other page has
 // its own copy of this helper; keeping one here avoids four more copies.

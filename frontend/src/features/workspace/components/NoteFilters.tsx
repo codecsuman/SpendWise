@@ -1,3 +1,4 @@
+import CustomSelect from '../../../components/ui/CustomSelect'
 // ============================================================================
 // NoteFilters.tsx — sort control and the removable active-filter chips.
 // ============================================================================
@@ -19,9 +20,6 @@ interface NoteFiltersProps {
   onArchived: (value: boolean) => void
   onClear: () => void
 }
-
-const selectClass =
-  'h-9 rounded-md border border-input bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50'
 
 interface FilterChipProps {
   label: string
@@ -62,16 +60,15 @@ export default function NoteFilters({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <select
+      <CustomSelect
         value={sort}
         onChange={(event) => onSort(event.target.value as NoteSort)}
         aria-label="Sort notes"
-        className={selectClass}
       >
         <option value="updated">Last updated</option>
         <option value="created">Newest first</option>
         <option value="title">Title A–Z</option>
-      </select>
+      </CustomSelect>
 
       {activeFolder && (
         <FilterChip

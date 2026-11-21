@@ -10,6 +10,7 @@
 // cookies and never in JavaScript.
 // ============================================================================
 
+import { API_URL } from '../../../config/api'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 // --- TYPES -----------------------------------------------------------------
@@ -18,6 +19,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 export interface AuthUser {
   id: string
   name: string
+  avatarUrl?: string
   email: string
   currency: string
   timezone: string
@@ -48,8 +50,6 @@ export interface RegisterInput {
 
 // Base URL in one place. VITE_* values are PUBLIC (they ship in the bundle),
 // which is fine here because this is just an address, not a secret.
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
-
 // --- THE API SLICE ---------------------------------------------------------
 export const authApi = createApi({
   // The key this slice's data is stored under in the Redux store.

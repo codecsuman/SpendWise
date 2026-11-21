@@ -4,6 +4,7 @@ import { hashPassword, verifyPassword } from '../utils/password.js';
 import { generateTokenPair, verifyToken } from '../utils/jwt.js';
 import { hashToken } from '../utils/tokenHash.js';
 import { AppError } from '../utils/AppError.js';
+import { logger } from '../config/logger.js';
 import type { IUser } from '../models/User.model.js';
 import type { RegisterInput, LoginInput } from '../validators/auth.validator.js';
 
@@ -12,6 +13,7 @@ const userRepository = new UserRepository();
 export interface PublicUser {
   id: string;
   name: string;
+  avatarUrl?: string;
   email: string;
   currency: string;
   timezone: string;
@@ -34,6 +36,7 @@ export function toPublicUser(user: IUser): PublicUser {
   return {
     id: user._id.toString(),
     name: user.name,
+    avatarUrl: user.avatarUrl,
     email: user.email,
     currency: user.currency,
     timezone: user.timezone,
@@ -67,8 +70,7 @@ export class AuthService {
     try {
       await categoryService.seedDefaults(user._id.toString());
     } catch (error) {
-      // Temporary until pino-http is wired into the app.
-      console.error('Failed to seed default categories', error);
+      logger.error({ err: error }, 'Failed to seed default categories');
     }
 
     const { accessToken, refreshToken } = generateTokenPair(

@@ -53,6 +53,15 @@ export async function updateProfile(
   res.status(200).json({ success: true, user });
 }
 
+// POST /api/users/me/avatar
+export async function updateAvatar(req: Request, res: Response): Promise<void> {
+  const userId = currentUserId(req);
+  if (!req.file) throw new AppError('Choose a profile photo', 400);
+
+  const user = await userService.updateAvatar(userId, req.file);
+  res.status(200).json({ success: true, user });
+}
+
 // PATCH /api/users/me/password
 export async function changePassword(
   req: Request,

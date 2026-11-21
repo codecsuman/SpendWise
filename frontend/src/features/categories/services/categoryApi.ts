@@ -8,6 +8,7 @@
 // httpOnly access-token cookie and every call answers 401.
 // ============================================================================
 
+import { API_URL } from '../../../config/api'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 // Keep this list identical to the enum in backend Category.model.ts.
@@ -62,8 +63,6 @@ export interface CreateCategoryInput {
 
 // PATCH sends only the fields that changed.
 export type UpdateCategoryInput = Partial<CreateCategoryInput>
-
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
 
 export const categoryApi = createApi({
   reducerPath: 'categoryApi',

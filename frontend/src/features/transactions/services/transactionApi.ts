@@ -8,6 +8,7 @@
 // httpOnly access-token cookie and every call answers 401.
 // ============================================================================
 
+import { API_URL } from '../../../config/api'
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 // Keep these lists identical to the enums in backend Transaction.model.ts.
@@ -74,8 +75,6 @@ export interface CreateTransactionInput {
 
 // PATCH sends only the fields that changed.
 export type UpdateTransactionInput = Partial<CreateTransactionInput>;
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
 export const transactionApi = createApi({
   reducerPath: "transactionApi",

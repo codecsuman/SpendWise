@@ -36,7 +36,7 @@ export default function WorkspaceHeader({
   return (
     <header className="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Workspace</h1>
+        <h1 className="page-title">Workspace</h1>
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           {noteCount} note{noteCount === 1 ? '' : 's'} shown
           {isFetching && <Loader2 className="size-3.5 animate-spin" />}
@@ -71,7 +71,7 @@ export default function WorkspaceHeader({
           type="button"
           onClick={onNew}
           disabled={isCreating}
-          className="btn-3d sm"
+          className="button-primary"
         >
           <Plus className="mr-1 inline size-4" />
           {isCreating ? 'Creating…' : 'New note'}

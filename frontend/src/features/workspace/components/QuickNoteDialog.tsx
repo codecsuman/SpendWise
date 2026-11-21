@@ -5,7 +5,7 @@
 // ============================================================================
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { X } from 'lucide-react'
+import { Bookmark, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -83,7 +83,7 @@ export default function QuickNoteDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center theme-scrim p-4 backdrop-blur-sm"
       onMouseDown={close}
       role="presentation"
     >
@@ -92,7 +92,7 @@ export default function QuickNoteDialog({
         aria-modal="true"
         aria-labelledby="quick-note-title"
         onMouseDown={(event) => event.stopPropagation()}
-        className="w-full max-w-lg rounded-2xl border border-border bg-card p-5 shadow-2xl"
+        className="w-full max-w-lg surface-card floating-shadow p-5"
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 id="quick-note-title" className="text-base font-semibold">
@@ -126,7 +126,7 @@ export default function QuickNoteDialog({
             maxLength={120}
             {...register('title')}
             disabled={busy}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
+            className="h-10 form-control px-3 font-medium"
           />
           {errors.title && (
             <p className="text-xs text-destructive">{errors.title.message}</p>
@@ -144,7 +144,7 @@ export default function QuickNoteDialog({
               }
             }}
             disabled={busy}
-            className="rounded-md border border-input bg-background px-3 py-2 text-sm leading-relaxed outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
+            className="form-control px-3 py-2 leading-relaxed"
           />
           {errors.content && (
             <p className="text-xs text-destructive">{errors.content.message}</p>
@@ -159,11 +159,12 @@ export default function QuickNoteDialog({
                 type="button"
                 onClick={close}
                 disabled={busy}
-                className="h-9 rounded-md border border-border px-4 text-sm font-medium transition hover:bg-muted disabled:opacity-60"
+                className="button-secondary h-9"
               >
                 Cancel
               </button>
-              <button type="submit" disabled={busy} className="btn-3d sm">
+              <button type="submit" disabled={busy} className="button-primary button-save">
+                {!busy && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
                 {busy ? 'Saving…' : 'Save note'}
               </button>
             </div>

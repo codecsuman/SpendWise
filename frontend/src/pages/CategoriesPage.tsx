@@ -1,3 +1,5 @@
+import CustomSelect from '../components/ui/CustomSelect'
+import { accessibleColor, cssColor, hexToRgb } from '../components/themeColors'
 // ============================================================================
 // CategoriesPage.tsx — manage the labels transactions are filed under.
 //
@@ -10,7 +12,7 @@
 // ============================================================================
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
+import { Bookmark, Loader2, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import type { FormEvent } from 'react'
@@ -34,6 +36,11 @@ function getErrorMessage(error: unknown): string {
   return 'Something went wrong. Please try again.'
 }
 
+function categoryIconInk(color: string) {
+  if (!/^#[\da-f]{6}$/i.test(color)) return 'var(--foreground)'
+  return cssColor(accessibleColor(hexToRgb('#ffffff'), [hexToRgb(color)], 4.51))
+}
+
 const typeLabels: Record<CategoryType, string> = {
   income: 'Income',
   expense: 'Expense',
@@ -41,13 +48,13 @@ const typeLabels: Record<CategoryType, string> = {
 }
 
 const typeClasses: Record<CategoryType, string> = {
-  income: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-  expense: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
-  both: 'bg-slate-500/10 text-slate-600 dark:text-slate-300',
+  income: 'status-success',
+  expense: 'status-danger',
+  both: 'bg-muted text-muted-foreground',
 }
 
 const inputClass =
-  'h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50'
+  'control-height form-control px-3'
 
 // --- FORM ------------------------------------------------------------------
 
@@ -129,12 +136,12 @@ function CategoryForm({ category, onDone }: CategoryFormProps) {
       noValidate
     >
       {serverError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {serverError}
         </p>
       )}
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="category-name" className="text-sm font-medium">
           Name
         </label>
@@ -157,23 +164,22 @@ function CategoryForm({ category, onDone }: CategoryFormProps) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="category-type" className="text-sm font-medium">
             Type
           </label>
-          <select
+          <CustomSelect
             id="category-type"
             {...register('type')}
             disabled={busy}
-            className={inputClass}
           >
             <option value="expense">Expense</option>
             <option value="income">Income</option>
             <option value="both">Both</option>
-          </select>
+          </CustomSelect>
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="category-color" className="text-sm font-medium">
             Colour
           </label>
@@ -198,7 +204,7 @@ function CategoryForm({ category, onDone }: CategoryFormProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="category-icon" className="text-sm font-medium">
           Lucide icon name
         </label>
@@ -215,7 +221,7 @@ function CategoryForm({ category, onDone }: CategoryFormProps) {
         )}
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="category-description" className="text-sm font-medium">
           Description <span className="text-muted-foreground">(optional)</span>
         </label>
@@ -237,16 +243,17 @@ function CategoryForm({ category, onDone }: CategoryFormProps) {
         <button
           type="submit"
           disabled={busy || category?.isDefault}
-          className="flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+          className={category ? "button-primary button-save h-9 px-4" : "button-primary h-9 px-4"}
         >
           {busy && <Loader2 className="size-4 animate-spin" />}
+          {category && !busy && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
           {category ? 'Save changes' : 'Create category'}
         </button>
         <button
           type="button"
           onClick={onDone}
           disabled={busy}
-          className="h-9 rounded-md border border-border px-4 text-sm font-medium transition hover:bg-muted disabled:opacity-60"
+          className="button-secondary h-9"
         >
           Cancel
         </button>
@@ -310,17 +317,17 @@ export default function CategoriesPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+      <header className="page-heading flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="page-title">Categories</h1>
+          <p className="page-description">
             {categories.length} categor{categories.length === 1 ? 'y' : 'ies'}
           </p>
         </div>
         <button
           type="button"
           onClick={openCreate}
-          className="flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+          className="button-primary h-9"
         >
           <Plus className="size-4" />
           New category
@@ -328,7 +335,7 @@ export default function CategoriesPage() {
       </header>
 
       {formOpen && (
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section className="surface-card p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-base font-semibold">
               {editing ? `Edit ${editing.name}` : 'New category'}
@@ -351,36 +358,37 @@ export default function CategoriesPage() {
       )}
 
       {/* ---------------- FILTERS ---------------- */}
-      <section className="flex flex-wrap items-center gap-2">
-        <form onSubmit={applySearch} className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
+      <section className="filter-bar">
+        <form onSubmit={applySearch} className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="search"
+              aria-label="Search categories"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
               placeholder="Search categories…"
-              className="h-9 w-56 rounded-md border border-input bg-background pr-3 pl-8 text-sm outline-none focus:ring-2 focus:ring-ring/50"
+              className="control-height w-full form-control sm:w-56 pr-3 pl-8"
             />
           </div>
           <button
             type="submit"
-            className="h-9 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+            className="button-primary control-height"
           >
             Search
           </button>
         </form>
 
-        <select
+        <CustomSelect
+          aria-label="Filter categories by type"
           value={type}
           onChange={(event) => setType(event.target.value as CategoryType | '')}
-          className="h-9 rounded-md border border-input bg-background px-2 text-sm outline-none focus:ring-2 focus:ring-ring/50"
         >
           <option value="">All types</option>
           <option value="expense">Expense</option>
           <option value="income">Income</option>
           <option value="both">Both</option>
-        </select>
+        </CustomSelect>
 
         {isFetching && !isLoading && (
           <Loader2 className="size-4 animate-spin text-muted-foreground" />
@@ -388,12 +396,12 @@ export default function CategoriesPage() {
       </section>
 
       {error && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {getErrorMessage(error)}
         </p>
       )}
       {actionError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {actionError}
         </p>
       )}
@@ -405,7 +413,7 @@ export default function CategoriesPage() {
           Loading categories…
         </div>
       ) : categories.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-sm">
+        <div className="surface-card p-6 text-sm text-muted-foreground">
           No categories match these filters.
           <span className="mt-1 block text-xs">
             Create one with “New category”, or add the defaults by re-running
@@ -417,12 +425,12 @@ export default function CategoriesPage() {
           {categories.map((category) => (
             <article
               key={category._id}
-              className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm"
+              className="flex flex-col gap-3 surface-card p-4"
             >
               <div className="flex items-start gap-3">
                 <span
-                  className="flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
-                  style={{ backgroundColor: category.color }}
+                  className="flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
+                  style={{ backgroundColor: category.color, color: categoryIconInk(category.color) }}
                   aria-hidden="true"
                 >
                   {category.name.charAt(0).toUpperCase()}
@@ -440,7 +448,7 @@ export default function CategoriesPage() {
                     )}
                   </div>
                   <span
-                    className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${typeClasses[category.type]}`}
+                    className={`mt-1 status-badge ${typeClasses[category.type]}`}
                   >
                     {typeLabels[category.type]}
                   </span>

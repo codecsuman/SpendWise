@@ -22,6 +22,7 @@
 import { TransactionRepository } from '../repositories/transaction.repository.js';
 import { RecurringTransactionRepository } from '../repositories/recurring.repository.js';
 import { nextRunDate } from '../services/recurring.service.js';
+import { logger } from '../config/logger.js';
 
 const recurringRepository = new RecurringTransactionRepository();
 const transactionRepository = new TransactionRepository();
@@ -83,9 +84,9 @@ export async function processDueRecurring(now = new Date()): Promise<number> {
       } catch (error) {
         // The schedule already moved, so a broken rule cannot create a hot
         // loop of retries. The skipped occurrence is traceable by its date.
-        console.error(
-          `[recurring] rule ${ruleId} skipped the occurrence at ${dueDate.toISOString()}:`,
-          error
+        logger.error(
+          { err: error, ruleId, dueDate: dueDate.toISOString() },
+          'Recurring rule skipped an occurrence'
         );
       }
     }
@@ -102,20 +103,21 @@ export function startRecurringScheduler(intervalMs = TICK_MS): void {
 
   // Do not wait a full interval for the first pass: bills may already be due.
   void processDueRecurring().catch((error) => {
-    console.error('[recurring] first pass failed:', error);
+    logger.error({ err: error }, 'Recurring first pass failed');
   });
 
   timer = setInterval(() => {
     void processDueRecurring().catch((error) => {
-      console.error('[recurring] tick failed:', error);
+      logger.error({ err: error }, 'Recurring tick failed');
     });
   }, intervalMs);
 
   // Do not keep the process alive just for the timer (useful for scripts).
   timer.unref();
 
-  console.log(
-    `[recurring] scheduler started (every ${Math.round(intervalMs / 1000)}s)`
+  logger.info(
+    { intervalSeconds: Math.round(intervalMs / 1000) },
+    'Recurring scheduler started'
   );
 }
 

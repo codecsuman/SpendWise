@@ -13,6 +13,7 @@
 // read-only values.
 // ============================================================================
 
+import { API_URL } from '../../../config/api'
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 // Keep this list identical to the enum in backend Budget.model.ts.
@@ -51,6 +52,7 @@ export interface BudgetListResponse {
 // Omit `month` and the server uses the current month.
 export interface BudgetListQuery {
   month?: string;
+  date?: string;
   category?: string;
   sort?: BudgetSort;
 }
@@ -65,8 +67,6 @@ export interface CreateBudgetInput {
 
 // PATCH sends only the fields that changed.
 export type UpdateBudgetInput = Partial<CreateBudgetInput>;
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
 export const budgetApi = createApi({
   reducerPath: "budgetApi",

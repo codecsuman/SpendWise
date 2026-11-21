@@ -129,7 +129,7 @@ export default function NoteEditor({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+    <div className="flex h-full min-h-0 flex-col surface-card overflow-hidden">
       <NoteToolbar
         pinned={pinned}
         archived={archived}

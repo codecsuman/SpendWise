@@ -52,6 +52,7 @@ export const createBudgetSchema = z.object({
 export const listBudgetsSchema = z.object({
   query: z.strictObject({
     month: monthField.optional(),
+    date: z.iso.date().optional(),
     category: objectIdField.optional(),
     sort: z.enum(['newest', 'highest']).default('newest'),
   }),

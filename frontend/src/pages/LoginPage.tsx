@@ -169,20 +169,13 @@ export default function LoginPage() {
 
   // --- THE UI (JSX) --------------------------------------------------------
   return (
-    // auth-screen supplies the moving deep-blue gradient and the waves.
-    // Do not add `aurora` or `fx` here — the login page has its own background.
-    <main className="page-wrap page-login auth-screen">
-      <div className="auth-waves" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </div>
-
+    <main className="auth-screen flex-1">
       <div className="auth-wrap">
         <div className="auth-html">
+          <h1 className="page-title mb-5 text-foreground">SpendWise</h1>
           {/*
             These two radio inputs are the CSS-only tab state. They are hidden
-            by .auth-radio, but the labels below still toggle them. The order
+            by .auth-radio, and the labels below toggle them. The order
             matters: index.css uses the + sibling selector to find .auth-form.
           */}
           <input
@@ -286,7 +279,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="auth-group">
-                  <button className="btn-3d block" type="submit" disabled={busy}>
+                  <button className="button-primary w-full" type="submit" disabled={busy}>
                     <span className="flex items-center justify-center gap-2">
                       {signIn.formState.isSubmitting && <ButtonSpinner />}
                       {signIn.formState.isSubmitting ? 'Signing in…' : 'Sign In'}
@@ -425,7 +418,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="auth-group">
-                  <button className="btn-3d block" type="submit" disabled={busy}>
+                  <button className="button-primary w-full" type="submit" disabled={busy}>
                     <span className="flex items-center justify-center gap-2">
                       {signUp.formState.isSubmitting && <ButtonSpinner />}
                       {signUp.formState.isSubmitting

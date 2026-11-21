@@ -4,9 +4,9 @@
 // Same endpoint, different lens: where the money went (donut) plus how income
 // and expense moved over a chosen number of months (area chart).
 //
-// No page-wrap: MainLayout supplies page-analytics + the moving grid.
 // ============================================================================
 
+import ReportPeriodField from '../components/ReportPeriodField'
 import { useState } from 'react'
 import {
   Area,
@@ -50,14 +50,15 @@ function formatMoney(value: number, currency: string) {
 const ranges = [3, 6, 12]
 
 export default function AnalyticsPage() {
-  const [month, setMonth] = useState('')
+  const [period, setPeriod] = useState('')
   const [months, setMonths] = useState(6)
 
   const { data: me } = useGetMeQuery()
   const currency = me?.user.currency ?? 'USD'
 
   const query: AnalyticsQuery = { months }
-  if (month) query.month = month
+  if (period.length === 10) query.date = period
+  else if (period) query.month = period
 
   const { data, isLoading, isError, refetch } = useGetOverviewQuery(query)
   const overview = data?.overview
@@ -76,12 +77,12 @@ export default function AnalyticsPage() {
 
   if (isError || !overview) {
     return (
-      <div className="card-lift p-6">
+      <div className="surface-card p-6">
         <h2 className="text-lg font-semibold">Analytics are unavailable</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Check the backend is running, then try again.
         </p>
-        <button type="button" onClick={() => refetch()} className="btn-3d mt-4">
+        <button type="button" onClick={() => refetch()} className="button-primary mt-4">
           Try again
         </button>
       </div>
@@ -95,24 +96,16 @@ export default function AnalyticsPage() {
       {/* ---------------- header ---------------- */}
       <div className="fade-up flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+          <h1 className="page-title">
             Analytics
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Spending split and the trend for {overview.month}
+            Spending split for {overview.date ?? overview.month}
           </p>
         </div>
 
         <div className="flex flex-wrap items-end gap-2">
-          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-            Month
-            <input
-              type="month"
-              value={month}
-              onChange={(event) => setMonth(event.target.value)}
-              className="field rounded-lg px-3 py-2 text-sm text-foreground"
-            />
-          </label>
+          <ReportPeriodField value={period} onChange={setPeriod} />
 
           <div className="flex gap-1">
             {ranges.map((value) => (
@@ -120,7 +113,7 @@ export default function AnalyticsPage() {
                 key={value}
                 type="button"
                 onClick={() => setMonths(value)}
-                className={`btn-3d sm ${months === value ? '' : 'gray'}`}
+                className={`${months === value ? 'button-primary' : 'button-secondary'}`}
               >
                 {value}m
               </button>
@@ -131,15 +124,15 @@ export default function AnalyticsPage() {
 
       <div className="grid gap-4 xl:grid-cols-2">
         {/* ---------------- donut ---------------- */}
-        <section className="card-lift p-5">
+        <section className="surface-card p-5">
           <h2 className="font-semibold">Spending by category</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Share of {formatMoney(overview.expense, currency)} spent this month
+            Share of {formatMoney(overview.expense, currency)} spent for {overview.date ?? overview.month}
           </p>
 
           {!hasExpenses ? (
             <p className="mt-6 text-sm text-muted-foreground">
-              No expenses recorded for {overview.month}.
+              No expenses recorded for {overview.date ?? overview.month}.
             </p>
           ) : (
             <>
@@ -191,10 +184,10 @@ export default function AnalyticsPage() {
         </section>
 
         {/* ---------------- trend ---------------- */}
-        <section className="card-lift p-5">
+        <section className="surface-card p-5">
           <h2 className="font-semibold">Income vs expense</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Last {months} months, starting from {overview.month}
+            Last {months} months, ending in {overview.month}
           </p>
 
           <div className="mt-4">
@@ -254,6 +247,7 @@ export default function AnalyticsPage() {
                   dataKey="expense"
                   name="Expense"
                   stroke="var(--expense)"
+                  strokeDasharray="6 4"
                   fill="url(#expenseFill)"
                   strokeWidth={2}
                 />

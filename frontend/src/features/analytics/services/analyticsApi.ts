@@ -8,6 +8,7 @@
 // httpOnly access-token cookie and every call answers 401.
 // ============================================================================
 
+import { API_URL } from '../../../config/api'
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 // Mirrors CategoryBreakdown from backend analytics.service.ts.
@@ -29,6 +30,7 @@ export interface TrendPoint {
 // Mirrors AnalyticsOverview from backend analytics.service.ts.
 export interface AnalyticsOverview {
   month: string;
+  date?: string;
   income: number;
   expense: number;
   savings: number;
@@ -47,10 +49,9 @@ export interface AnalyticsOverviewResponse {
 // fetchBaseQuery skips keys whose value is undefined.
 export interface AnalyticsQuery {
   month?: string;
+  date?: string;
   months?: number;
 }
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
 export const analyticsApi = createApi({
   reducerPath: "analyticsApi",

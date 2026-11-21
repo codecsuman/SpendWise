@@ -127,22 +127,22 @@ export default function RegisterPage() {
 
   // --- THE UI (JSX) --------------------------------------------------------
   return (
-    <main className="page-wrap aurora page-login flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-lg">
+    <main className="flex flex-1 items-center justify-center p-4">
+      <div className="surface-card w-full max-w-md p-6 sm:p-8">
         {/* Brand header */}
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
           <div className="flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <Wallet className="size-6" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="page-title">Create your account</h1>
+          <p className="page-description">
             Start tracking your money with SpendWise
           </p>
         </div>
 
         {/* Server-side error, shown only when non-empty */}
         {serverError && (
-          <p className="mb-4 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <p className="mb-4 form-error">
             {serverError}
           </p>
         )}
@@ -164,7 +164,7 @@ export default function RegisterPage() {
               placeholder="Suman Jhanp"
               {...register('name')}
               disabled={busy}
-              className="h-10 rounded-md border border-input bg-muted px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
+              className="h-10 form-control px-3"
             />
             {errors.name && (
               <p className="text-xs text-destructive">{errors.name.message}</p>
@@ -183,7 +183,7 @@ export default function RegisterPage() {
               placeholder="you@example.com"
               {...register('email')}
               disabled={busy}
-              className="h-10 rounded-md border border-input bg-muted px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
+              className="h-10 form-control px-3"
             />
             {errors.email && (
               <p className="text-xs text-destructive">{errors.email.message}</p>
@@ -203,7 +203,7 @@ export default function RegisterPage() {
                 placeholder="••••••••"
                 {...register('password')}
                 disabled={busy}
-                className="h-10 w-full rounded-md border border-input bg-muted px-3 pr-10 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
+                className="h-10 w-full form-control px-3 pr-10"
               />
               {/* type="button" stops this from submitting the form */}
               <button
@@ -239,7 +239,7 @@ export default function RegisterPage() {
                 placeholder="••••••••"
                 {...register('confirmPassword')}
                 disabled={busy}
-                className="h-10 w-full rounded-md border border-input bg-muted px-3 pr-10 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
+                className="h-10 w-full form-control px-3 pr-10"
               />
               <button
                 type="button"
@@ -265,7 +265,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={busy}
-            className="mt-2 flex h-10 items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+            className="mt-2 button-primary h-10"
           >
             {busy && <Loader2 className="size-4 animate-spin" />}
             {busy ? 'Creating account…' : 'Create account'}

@@ -73,7 +73,7 @@ export default function GoalProgressChart({ data }: GoalProgressChartProps) {
             value.length > 14 ? `${value.slice(0, 13)}…` : value
           }
         />
-        <Tooltip cursor={{ fill: 'rgba(0, 0, 0, 0.04)' }} />
+        <Tooltip cursor={{ fill: 'var(--muted)' }} />
         <ReferenceLine x={100} stroke="var(--income)" strokeDasharray="4 4" />
         <Bar dataKey="percent" name="Saved" unit="%" radius={[0, 4, 4, 0]}>
           {data.map((row) => (

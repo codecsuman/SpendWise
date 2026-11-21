@@ -54,15 +54,15 @@ export default function CsvPreview() {
       )}
 
       {preview && (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <caption className="pb-2 text-left text-muted-foreground">
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="data-table">
+            <caption className="px-4 py-3 text-left text-muted-foreground">
               Showing {preview.rows.length} of {preview.totalRows} rows
             </caption>
-            <thead className="bg-muted">
+            <thead>
               <tr>
                 {preview.headers.map((header) => (
-                  <th key={header} scope="col" className="px-3 py-2">
+                  <th key={header} scope="col">
                     {header}
                   </th>
                 ))}
@@ -70,10 +70,10 @@ export default function CsvPreview() {
             </thead>
             <tbody>
               {preview.rows.map((row) => (
-                <tr key={row.line} className="border-t border-border">
+                <tr key={row.line}>
                   {/* Follow the header order to align cells with their columns. */}
                   {preview.headers.map((header) => (
-                    <td key={header} className="px-3 py-2">
+                    <td key={header}>
                       {row.values[header]}
                     </td>
                   ))}

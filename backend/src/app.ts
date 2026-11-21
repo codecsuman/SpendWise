@@ -1,7 +1,9 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import { pinoHttp } from "pino-http";
 import { env } from "./config/env.js";
+import { logger } from "./config/logger.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 import { notFoundMiddleware } from "./middleware/notFound.middleware.js";
 import { globalLimiter } from "./middleware/rateLimit.middleware.js";
@@ -17,6 +19,12 @@ import workspaceRouter from './routes/workspace.routes.js'
 import recurringRouter from './routes/recurring.routes.js'
 const app = express();
 
+// Behind a proxy or load balancer, trust one hop so rate limiting and
+// secure-cookie detection see the real client address.
+if (env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
 app.use(helmet());
 
 // Allowlist: only the frontend origin may call this API.
@@ -29,12 +37,9 @@ app.use(express.json({ limit: "10kb" }));
 // Count every request per IP. Must sit before the routes it protects.
 app.use(globalLimiter);
 
-// Simple request logging middleware (replace with pino-http later)
-app.use((req, _res, next) => {
-  const start = Date.now();
-  console.log(`${req.method} ${req.path}`);
-  next();
-});
+// Structured request logs. Cookies and authorization headers are redacted
+// in config/logger.ts, so tokens never reach the log output.
+app.use(pinoHttp({ logger }));
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 

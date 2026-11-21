@@ -166,7 +166,7 @@ export default function NoteToolbar({
           onChange={(event) => onFolderChange(event.target.value)}
           placeholder="No folder"
           maxLength={40}
-          className="h-8 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-xs outline-none focus:ring-2 focus:ring-ring/50"
+          className="control-height min-w-0 flex-1 form-control px-3"
         />
         <datalist id="workspace-folder-options">
           {folders.map((name) => (

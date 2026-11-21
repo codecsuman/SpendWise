@@ -49,7 +49,7 @@ export default function NotesGrid({
             Write down an idea, a reminder or a link to a transaction.
           </p>
         </div>
-        <button type="button" onClick={onNew} className="btn-3d sm">
+        <button type="button" onClick={onNew} className="button-primary">
           <Plus className="mr-1 inline size-4" />
           New note
         </button>

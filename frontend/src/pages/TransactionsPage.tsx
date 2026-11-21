@@ -1,3 +1,4 @@
+import CustomSelect from '../components/ui/CustomSelect'
 // ============================================================================
 // TransactionsPage.tsx — the user's money in and out.
 //
@@ -41,9 +42,6 @@ function formatAmount(transaction: Transaction): string {
     currency: transaction.currency,
   }).format(transaction.amount)
 }
-
-const selectClass =
-  'h-9 form-control px-2'
 
 export default function TransactionsPage() {
   const [page, setPage] = useState(1)
@@ -98,10 +96,10 @@ export default function TransactionsPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+      <header className="page-heading flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="page-title">Transactions</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="page-description">
             {pagination ? `${pagination.total} transaction(s)` : 'Loading…'}
           </p>
         </div>
@@ -111,52 +109,53 @@ export default function TransactionsPage() {
       <CsvPreview />
 
       {/* ---------------- FILTERS ---------------- */}
-      <section className="flex flex-wrap items-center gap-2">
-        <form onSubmit={applySearch} className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
+      <section className="filter-bar">
+        <form onSubmit={applySearch} className="flex w-full min-w-0 items-center gap-2 sm:w-auto sm:flex-1">
           <div className="relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="search"
+              aria-label="Search transaction descriptions"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
               placeholder="Search description…"
-              className="h-9 w-full form-control sm:w-56 pr-3 pl-8"
+              className="form-control control-height w-full pr-3 pl-8"
             />
           </div>
           <button
             type="submit"
-            className="button-primary h-9"
+            className="button-primary control-height"
           >
             Search
           </button>
         </form>
 
-        <select
+        <CustomSelect
+          aria-label="Transaction type"
           value={type}
           onChange={(event) => {
             setType(event.target.value as TransactionType | '')
             setPage(1)
           }}
-          className={selectClass}
         >
           <option value="">All types</option>
           <option value="income">Income</option>
           <option value="expense">Expense</option>
-        </select>
+        </CustomSelect>
 
-        <select
+        <CustomSelect
+          aria-label="Sort transactions"
           value={sort}
           onChange={(event) => {
             setSort(event.target.value as TransactionSort)
             setPage(1)
           }}
-          className={selectClass}
         >
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
           <option value="highest">Highest amount</option>
           <option value="lowest">Lowest amount</option>
-        </select>
+        </CustomSelect>
 
         {isFetching && !isLoading && (
           <Loader2 className="size-4 animate-spin text-muted-foreground" />
@@ -189,33 +188,32 @@ export default function TransactionsPage() {
             </span>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-border bg-muted/40 text-xs uppercase text-muted-foreground">
+          <div className="relative overflow-x-auto">
+            <table className="data-table">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 font-medium">Date</th>
-                  <th className="px-4 py-3 font-medium">Type</th>
-                  <th className="px-4 py-3 font-medium">Description</th>
-                  <th className="px-4 py-3 font-medium">Category</th>
-                  <th className="px-4 py-3 text-right font-medium">Amount</th>
-                  <th className="px-4 py-3" />
+                  <th scope="col">Date</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Description</th>
+                  <th scope="col">Category</th>
+                  <th scope="col" className="text-right">Amount</th>
+                  <th scope="col"><span className="sr-only">Actions</span></th>
                 </tr>
               </thead>
               <tbody>
                 {transactions.map((transaction) => (
                   <tr
                     key={transaction._id}
-                    className="border-b border-border last:border-0"
                   >
-                    <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
+                    <td className="whitespace-nowrap text-muted-foreground">
                       {new Date(transaction.date).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <span
                         className={
                           transaction.type === 'income'
-                            ? 'font-medium text-emerald-600 dark:text-emerald-400'
-                            : 'font-medium text-rose-600 dark:text-rose-400'
+                            ? 'status-badge status-success'
+                            : 'status-badge status-danger'
                         }
                       >
                         {transaction.type === 'income' ? 'Income' : 'Expense'}
@@ -226,22 +224,22 @@ export default function TransactionsPage() {
                     </td>
                     {/* No category names yet: show the id tail until Phase 5. */}
                     <td
-                      className="px-4 py-3 font-mono text-xs text-muted-foreground"
+                      className="font-mono text-xs text-muted-foreground"
                       title={transaction.category}
                     >
                       #{transaction.category.slice(-6)}
                     </td>
                     <td
-                      className={`px-4 py-3 text-right font-medium whitespace-nowrap ${
+                      className={`text-right font-medium whitespace-nowrap ${
                         transaction.type === 'income'
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : 'text-rose-600 dark:text-rose-400'
+                          ? 'text-income'
+                          : 'text-expense'
                       }`}
                     >
                       {transaction.type === 'income' ? '+' : '−'}
                       {formatAmount(transaction)}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="text-right">
                       <button
                         type="button"
                         onClick={() => handleDelete(transaction._id)}

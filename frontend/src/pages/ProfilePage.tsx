@@ -1,3 +1,4 @@
+import CustomSelect from '../components/ui/CustomSelect'
 // ============================================================================
 // ProfilePage.tsx — view and edit the logged-in user's account.
 //
@@ -10,8 +11,8 @@
 // ============================================================================
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Bookmark, Loader2 } from 'lucide-react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
@@ -21,6 +22,7 @@ import {
   useChangePasswordMutation,
   useGetProfileQuery,
   useUpdateProfileMutation,
+  useUploadAvatarMutation,
 } from '../features/profile/services/profileApi'
 
 // --- SHARED BITS -----------------------------------------------------------
@@ -49,7 +51,7 @@ function getErrorMessage(error: unknown): string {
 
 // Shared input styling so both forms look the same.
 const inputClass =
-  'h-10 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50'
+  'control-height form-control px-3'
 
 // --- PROFILE FORM ----------------------------------------------------------
 
@@ -126,9 +128,8 @@ function ProfileForm() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" />
-        Loading profile…
+      <div className="terminal-status" role="status">
+        <span>Loading profile…</span>
       </div>
     )
   }
@@ -142,7 +143,7 @@ function ProfileForm() {
       noValidate
     >
       {serverError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {serverError}
         </p>
       )}
@@ -153,7 +154,7 @@ function ProfileForm() {
       )}
 
       {/* NAME */}
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="name" className="text-sm font-medium">
           Full name
         </label>
@@ -171,26 +172,25 @@ function ProfileForm() {
       </div>
 
       {/* CURRENCY */}
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="currency" className="text-sm font-medium">
           Currency
         </label>
-        <select
+        <CustomSelect
           id="currency"
           {...register('currency')}
           disabled={busy}
-          className={inputClass}
         >
           {currencyValues.map((code) => (
             <option key={code} value={code}>
               {code}
             </option>
           ))}
-        </select>
+        </CustomSelect>
       </div>
 
       {/* TIMEZONE */}
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="timezone" className="text-sm font-medium">
           Timezone
         </label>
@@ -212,30 +212,30 @@ function ProfileForm() {
       </div>
 
       {/* LANGUAGE */}
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="language" className="text-sm font-medium">
           Language
         </label>
-        <select
+        <CustomSelect
           id="language"
           {...register('language')}
           disabled={busy}
-          className={inputClass}
         >
           {languageValues.map((code) => (
             <option key={code} value={code}>
               {languageLabels[code]}
             </option>
           ))}
-        </select>
+        </CustomSelect>
       </div>
 
       <button
         type="submit"
         disabled={busy}
-        className="mt-2 flex h-10 w-fit items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+        className="mt-2 button-primary button-save h-10 w-fit px-4"
       >
         {busy && <Loader2 className="size-4 animate-spin" />}
+        {!busy && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
         {busy ? 'Saving…' : 'Save changes'}
       </button>
     </form>
@@ -320,12 +320,12 @@ function PasswordForm() {
       noValidate
     >
       {serverError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {serverError}
         </p>
       )}
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="currentPassword" className="text-sm font-medium">
           Current password
         </label>
@@ -344,7 +344,7 @@ function PasswordForm() {
         )}
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="newPassword" className="text-sm font-medium">
           New password
         </label>
@@ -363,7 +363,7 @@ function PasswordForm() {
         )}
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="confirmPassword" className="text-sm font-medium">
           Confirm new password
         </label>
@@ -385,7 +385,7 @@ function PasswordForm() {
       <button
         type="submit"
         disabled={busy}
-        className="mt-2 flex h-10 w-fit items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+        className="mt-2 button-primary h-10 w-fit px-4"
       >
         {busy && <Loader2 className="size-4 animate-spin" />}
         {busy ? 'Updating…' : 'Update password'}
@@ -399,12 +399,24 @@ function PasswordForm() {
 export default function ProfilePage() {
   const { data } = useGetProfileQuery()
   const user = data?.user
+  const [uploadAvatar, { isLoading, isSuccess, error, reset }] = useUploadAvatarMutation()
+
+  async function handleAvatarUpload(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const form = event.currentTarget
+    const file = new FormData(form).get('file')
+    if (!(file instanceof File) || !file.size || isLoading) return
+
+    // Clear the picker only after the server saves the new avatar.
+    const result = await uploadAvatar(file)
+    if ('data' in result) form.reset()
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
-        <p className="text-sm text-muted-foreground">
+      <header className="page-heading">
+        <h1 className="page-title">Profile</h1>
+        <p className="page-description">
           {user
             ? `${user.email} · member since ${new Date(
                 user.createdAt
@@ -413,12 +425,41 @@ export default function ProfilePage() {
         </p>
       </header>
 
-      <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <section className="surface-card space-y-4 p-6">
+        <h2 className="text-base font-semibold">Profile photo</h2>
+        <div className="flex size-20 items-center justify-center overflow-hidden rounded-full bg-muted text-xl font-semibold text-muted-foreground">
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt="Your profile photo" className="size-full object-cover" />
+          ) : user?.name.trim().charAt(0).toUpperCase()}
+        </div>
+        <form onSubmit={handleAvatarUpload} className="space-y-3">
+          <label className="flex flex-col gap-1 text-sm font-medium">
+            Choose a photo
+            <input
+              type="file"
+              name="file"
+              accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
+              required
+              disabled={isLoading}
+              onChange={reset}
+              className="form-control w-full px-3 py-2"
+            />
+            <span className="text-muted-foreground">JPEG, PNG, WebP, or HEIC/HEIF up to 5 MB.</span>
+          </label>
+          <button type="submit" disabled={isLoading || !user} className="button-primary h-9">
+            {isLoading ? 'Uploading…' : 'Upload photo'}
+          </button>
+          {error && <p role="alert" className="form-error">{getErrorMessage(error)}</p>}
+          {isSuccess && <p role="status" className="text-sm">Profile photo updated.</p>}
+        </form>
+      </section>
+
+      <section className="surface-card p-6">
         <h2 className="mb-4 text-base font-semibold">Account details</h2>
         <ProfileForm />
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <section className="surface-card p-6">
         <h2 className="text-base font-semibold">Change password</h2>
         <p className="mb-4 text-sm text-muted-foreground">
           You will be signed out and asked to log in again.

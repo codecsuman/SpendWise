@@ -4,6 +4,7 @@ import { UserRepository } from '../repositories/user.repository.js';
 import { hashPassword, verifyPassword } from '../utils/password.js';
 import { AppError } from '../utils/AppError.js';
 import { toPublicUser, type PublicUser } from './auth.service.js';
+import { uploadAvatarToCloudinary } from './avatar.service.js';
 import type { IUser } from '../models/User.model.js';
 import type {
   UpdateProfileInput,
@@ -59,6 +60,14 @@ export class UserService {
       throw new AppError('User not found', 404);
     }
 
+    return toPublicUser(user);
+  }
+
+  async updateAvatar(userId: string, file: Express.Multer.File): Promise<PublicUser> {
+    await this.loadUser(userId);
+    const avatarUrl = await uploadAvatarToCloudinary(userId, file);
+    const user = await userRepository.updateById(userId, { avatarUrl });
+    if (!user) throw new AppError('User not found', 404);
     return toPublicUser(user);
   }
 

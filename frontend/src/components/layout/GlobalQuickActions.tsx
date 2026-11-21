@@ -2,16 +2,15 @@
 // GlobalQuickActions.tsx — floating Quick Note and Calculator on every
 // authenticated page.
 //
-// It lives in the layout, so the user can capture a note without navigating to
-// /workspace first. Saving a quick note opens that note in the Workspace.
+// The dialogs load only when opened, so they do not weigh down the first page.
 // ============================================================================
 
 import { Calculator, StickyNote } from 'lucide-react'
-import { useState } from 'react'
+import { Suspense, lazy, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import CalculatorPanel from '../../features/workspace/components/CalculatorPanel'
-import QuickNoteDialog from '../../features/workspace/components/QuickNoteDialog'
+const CalculatorPanel = lazy(() => import('../../features/workspace/components/CalculatorPanel'))
+const QuickNoteDialog = lazy(() => import('../../features/workspace/components/QuickNoteDialog'))
 
 export default function GlobalQuickActions() {
   const [quickOpen, setQuickOpen] = useState(false)
@@ -20,13 +19,13 @@ export default function GlobalQuickActions() {
 
   return (
     <>
-      <div className="fixed bottom-5 right-5 z-40 flex flex-col gap-2">
+      <div className="quick-actions">
         <button
           type="button"
           onClick={() => setCalcOpen(true)}
           aria-label="Open calculator"
           title="Calculator"
-          className="btn-icon shadow-lg"
+          className="btn-icon floating-shadow"
         >
           <Calculator className="size-5" />
         </button>
@@ -36,22 +35,26 @@ export default function GlobalQuickActions() {
           onClick={() => setQuickOpen(true)}
           aria-label="Write a quick note"
           title="Quick note"
-          className="btn-icon shadow-lg"
+          className="btn-icon floating-shadow"
         >
           <StickyNote className="size-5" />
         </button>
       </div>
 
-      <QuickNoteDialog
-        open={quickOpen}
-        onClose={() => setQuickOpen(false)}
-        onCreated={(note) => {
-          setQuickOpen(false)
-          navigate(`/workspace/${note._id}`)
-        }}
-      />
+      <Suspense fallback={null}>
+        {quickOpen && (
+          <QuickNoteDialog
+            open
+            onClose={() => setQuickOpen(false)}
+            onCreated={(note) => {
+              setQuickOpen(false)
+              navigate(`/workspace/${note._id}`)
+            }}
+          />
+        )}
 
-      <CalculatorPanel open={calcOpen} onClose={() => setCalcOpen(false)} />
+        {calcOpen && <CalculatorPanel open onClose={() => setCalcOpen(false)} />}
+      </Suspense>
     </>
   )
 }

@@ -1,6 +1,6 @@
-import 'dotenv/config'
 import { connectDB } from './config/database.js'
 import { env } from './config/env.js'
+import { logger } from './config/logger.js'
 import app from './app.js'
 import { startRecurringScheduler } from './queues/recurringTransaction.queue.js'
 
@@ -14,12 +14,11 @@ async function startServer(): Promise<void> {
 
   // Start HTTP server
   app.listen(env.PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${env.PORT}`)
-    console.log(`🌍 Environment: ${env.NODE_ENV}`)
+    logger.info({ port: env.PORT, env: env.NODE_ENV }, 'Server listening')
   })
 }
 
 startServer().catch((err) => {
-  console.error('❌ Failed to start server:', err)
+  logger.error({ err }, 'Failed to start server')
   process.exit(1)
 })

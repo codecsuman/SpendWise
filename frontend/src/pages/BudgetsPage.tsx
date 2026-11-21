@@ -1,3 +1,4 @@
+import CustomSelect from '../components/ui/CustomSelect'
 // ============================================================================
 // BudgetsPage.tsx — set a monthly spending limit per category.
 //
@@ -9,8 +10,10 @@
 // already have a budget this month to avoid the error in the first place.
 // ============================================================================
 
+import DateField from '../components/DateField'
+import ReportPeriodField from '../components/ReportPeriodField'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { Bookmark, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -61,9 +64,9 @@ const statusLabels: Record<BudgetStatus, string> = {
 }
 
 const statusClasses: Record<BudgetStatus, string> = {
-  normal: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-  warning: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-  exceeded: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
+  normal: 'status-success',
+  warning: 'status-pending',
+  exceeded: 'status-danger',
 }
 
 const barClasses: Record<BudgetStatus, string> = {
@@ -73,7 +76,7 @@ const barClasses: Record<BudgetStatus, string> = {
 }
 
 const inputClass =
-  'h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50'
+  'control-height form-control px-3'
 
 // Keep this list identical to Currency in budgetApi.ts.
 const currencies = ['INR', 'USD', 'EUR', 'GBP', 'CAD', 'AUD'] as const
@@ -168,20 +171,21 @@ function BudgetForm({
       noValidate
     >
       {serverError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {serverError}
         </p>
       )}
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="budget-category" className="text-sm font-medium">
           Category
         </label>
-        <select
+        <CustomSelect
           id="budget-category"
           {...register('category')}
+          aria-invalid={Boolean(errors.category)}
+          aria-describedby={errors.category ? 'budget-category-error' : undefined}
           disabled={busy}
-          className={inputClass}
         >
           <option value="">Choose a category</option>
           {expenseCategories.map((category) => {
@@ -196,14 +200,14 @@ function BudgetForm({
               </option>
             )
           })}
-        </select>
+        </CustomSelect>
         {errors.category && (
-          <p className="text-xs text-destructive">{errors.category.message}</p>
+          <p id="budget-category-error" className="text-xs text-destructive">{errors.category.message}</p>
         )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="budget-amount" className="text-sm font-medium">
             Amount
           </label>
@@ -222,34 +226,32 @@ function BudgetForm({
           )}
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="budget-currency" className="text-sm font-medium">
             Currency
           </label>
-          <select
+          <CustomSelect
             id="budget-currency"
             {...register('currency')}
             disabled={busy}
-            className={inputClass}
           >
             {currencies.map((currency) => (
               <option key={currency} value={currency}>
                 {currency}
               </option>
             ))}
-          </select>
+          </CustomSelect>
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="budget-month" className="text-sm font-medium">
             Month
           </label>
-          <input
+          <DateField
             id="budget-month"
             type="month"
             {...register('month')}
             disabled={busy}
-            className={inputClass}
           />
           {errors.month && (
             <p className="text-xs text-destructive">{errors.month.message}</p>
@@ -261,16 +263,17 @@ function BudgetForm({
         <button
           type="submit"
           disabled={busy}
-          className="flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+          className={budget ? "button-primary button-save h-9 px-4" : "button-primary h-9 px-4"}
         >
           {busy && <Loader2 className="size-4 animate-spin" />}
+          {budget && !busy && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
           {budget ? 'Save changes' : 'Create budget'}
         </button>
         <button
           type="button"
           onClick={onDone}
           disabled={busy}
-          className="h-9 rounded-md border border-border px-4 text-sm font-medium transition hover:bg-muted disabled:opacity-60"
+          className="button-secondary h-9"
         >
           Cancel
         </button>
@@ -282,7 +285,9 @@ function BudgetForm({
 // --- PAGE ------------------------------------------------------------------
 
 export default function BudgetsPage() {
-  const [month, setMonth] = useState(currentMonth)
+  const [period, setPeriod] = useState(currentMonth)
+  const month = period.slice(0, 7) || currentMonth()
+  const date = period.length === 10 ? period : undefined
   const [sort, setSort] = useState<BudgetSort>('newest')
 
   const [formOpen, setFormOpen] = useState(false)
@@ -290,6 +295,7 @@ export default function BudgetsPage() {
 
   const { data, isLoading, isFetching, error } = useListBudgetsQuery({
     month,
+    date,
     sort,
   })
 
@@ -345,17 +351,17 @@ export default function BudgetsPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+      <header className="page-heading flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Budgets</h1>
-          <p className="text-sm text-muted-foreground">
-            {budgets.length} budget{budgets.length === 1 ? '' : 's'} for {month}
+          <h1 className="page-title">Budgets</h1>
+          <p className="page-description">
+            {budgets.length} budget{budgets.length === 1 ? '' : 's'} for {month}{date ? ` ? spending through ${date}` : ''}
           </p>
         </div>
         <button
           type="button"
           onClick={openCreate}
-          className="flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+          className="button-primary h-9"
         >
           <Plus className="size-4" />
           New budget
@@ -363,7 +369,7 @@ export default function BudgetsPage() {
       </header>
 
       {formOpen && (
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section className="surface-card p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-base font-semibold">
               {editing ? 'Edit budget' : 'New budget'}
@@ -390,7 +396,7 @@ export default function BudgetsPage() {
 
       {/* ---------------- CHART ---------------- */}
       {budgets.length > 0 && (
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section className="surface-card p-5">
           <div className="mb-4 flex items-center justify-between gap-2">
             <h2 className="text-base font-semibold">Budget usage</h2>
             <span className="text-xs text-muted-foreground">
@@ -402,32 +408,17 @@ export default function BudgetsPage() {
       )}
 
       {/* ---------------- FILTERS ---------------- */}
-      <section className="flex flex-wrap items-center gap-2">
-        <label
-          htmlFor="budget-filter-month"
-          className="text-sm text-muted-foreground"
-        >
-          Month
-        </label>
-        <input
-          id="budget-filter-month"
-          type="month"
-          value={month}
-          onChange={(event) => {
-            // An empty value would be sent to the API and fail its regex.
-            if (event.target.value) setMonth(event.target.value)
-          }}
-          className={inputClass}
-        />
+      <section className="filter-bar">
+        <ReportPeriodField value={period} onChange={setPeriod} />
 
-        <select
+        <CustomSelect
+          aria-label="Sort budgets"
           value={sort}
           onChange={(event) => setSort(event.target.value as BudgetSort)}
-          className={inputClass}
         >
           <option value="newest">Newest month</option>
           <option value="highest">Highest amount</option>
-        </select>
+        </CustomSelect>
 
         {isFetching && !isLoading && (
           <Loader2 className="size-4 animate-spin text-muted-foreground" />
@@ -435,12 +426,12 @@ export default function BudgetsPage() {
       </section>
 
       {error && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {getErrorMessage(error)}
         </p>
       )}
       {actionError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {actionError}
         </p>
       )}
@@ -452,7 +443,7 @@ export default function BudgetsPage() {
           Loading budgets…
         </div>
       ) : budgets.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-sm">
+        <div className="surface-card p-6 text-sm text-muted-foreground">
           No budgets for {month}.
           <span className="mt-1 block text-xs">
             Create one with “New budget”. Spending is calculated from your
@@ -468,13 +459,13 @@ export default function BudgetsPage() {
             return (
               <article
                 key={budget.id}
-                className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm"
+                className="flex flex-col gap-4 surface-card p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h2 className="truncate text-sm font-semibold">{name}</h2>
                     <span
-                      className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${statusClasses[budget.status]}`}
+                      className={`mt-1 status-badge ${statusClasses[budget.status]}`}
                     >
                       {statusLabels[budget.status]}
                     </span>

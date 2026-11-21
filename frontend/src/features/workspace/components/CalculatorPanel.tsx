@@ -213,7 +213,7 @@ export default function CalculatorPanel({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/30 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex justify-end theme-scrim backdrop-blur-sm"
       onMouseDown={onClose}
       role="presentation"
     >
@@ -222,7 +222,7 @@ export default function CalculatorPanel({
         aria-modal="true"
         aria-labelledby="calculator-title"
         onMouseDown={(event) => event.stopPropagation()}
-        className="flex h-full w-full max-w-sm flex-col gap-3 overflow-y-auto border-l border-border bg-card p-4 shadow-2xl"
+        className="floating-shadow flex h-full w-full max-w-sm flex-col gap-3 overflow-y-auto border-l border-border bg-card p-4"
       >
         <div className="flex items-center justify-between">
           <h2 id="calculator-title" className="text-base font-semibold">

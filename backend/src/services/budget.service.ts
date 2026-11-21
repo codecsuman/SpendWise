@@ -144,11 +144,13 @@ export class BudgetService {
 
   private async spentForMonth(
     userId: string,
-    month: string
+    month: string,
+    throughDate?: string
   ): Promise<Map<string, number>> {
     const { from, to } = monthRange(month);
 
-    return transactionRepository.sumExpensesByCategory(userId, from, to);
+    const end = throughDate ? new Date(`${throughDate}T23:59:59.999Z`) : to;
+    return transactionRepository.sumExpensesByCategory(userId, from, end);
   }
 
   private async spentForBudget(
@@ -184,7 +186,7 @@ export class BudgetService {
     userId: string,
     query: ListBudgetsQuery
   ): Promise<BudgetOverview[]> {
-    const month = query.month ?? currentMonth();
+    const month = query.date?.slice(0, 7) ?? query.month ?? currentMonth();
 
     const budgets = await budgetRepository.findManyForUser(userId, {
       ...query,
@@ -192,7 +194,8 @@ export class BudgetService {
     });
 
     // One aggregation for the whole list, not one query per budget.
-    const spent = await this.spentForMonth(userId, month);
+    // Budgets stay monthly. A date shows spending accumulated through that day.
+    const spent = await this.spentForMonth(userId, month, query.date);
 
     return budgets.map((budget) =>
       buildOverview(budget, spent.get(String(budget.category)) ?? 0)

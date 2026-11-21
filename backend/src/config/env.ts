@@ -21,10 +21,10 @@
 // -------------------------------------------------------------------
 // 1. LOAD .env FILE INTO process.env
 // -------------------------------------------------------------------
-// Reads the .env file from backend/ folder and populates process.env
-// Must be called BEFORE accessing any process.env variable
+// Read just one file. Values supplied by the deployment host take precedence.
 import dotenv from 'dotenv'
-dotenv.config()
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env'
+dotenv.config({ path: envFile, quiet: true })
 
 // -------------------------------------------------------------------
 // 2. DEFINE THE SHAPE OF OUR CONFIG (TypeScript Interface)
@@ -53,7 +53,7 @@ interface EnvConfig {
 // 3. LIST OF REQUIRED VARIABLES (Fail Fast Validation)
 // -------------------------------------------------------------------
 // If ANY of these are missing from .env, the app crashes ON STARTUP
-// with a clear message: "Missing required environment variable: X"
+// with the selected env file and the names of any missing variables.
 // This prevents "works on my machine" bugs where vars are missing in prod
 const requiredVars: (keyof EnvConfig)[] = [
   'PORT',
@@ -69,14 +69,13 @@ const requiredVars: (keyof EnvConfig)[] = [
 // -------------------------------------------------------------------
 // 4. VALIDATE ALL REQUIRED VARS EXIST
 // -------------------------------------------------------------------
-// Loops through requiredVars array and checks process.env
-// Throws Error immediately if any are missing/empty
-// This runs ONCE at import time (top of server.ts)
-for (const key of requiredVars) {
-  if (!process.env[key]) {
-    // Crash early with helpful message instead of undefined errors later
-    throw new Error(`Missing required environment variable: ${key}`)
-  }
+// Report every missing key at once without printing any values.
+const missingVars = requiredVars.filter((key) => !process.env[key]?.trim())
+if (missingVars.length > 0) {
+  throw new Error(
+    `Missing required environment variables for ${envFile}: ${missingVars.join(', ')}. `
+    + 'Set them in that file or in the process environment before starting the server.',
+  )
 }
 
 // -------------------------------------------------------------------
@@ -197,7 +196,7 @@ if (isMainModule) {
       console.log('\n📋 Current Configuration:\n')
       console.log(`  PORT: ${env.PORT}`)
       console.log(`  NODE_ENV: ${env.NODE_ENV}`)
-      console.log(`  MONGODB_URI: ${env.MONGODB_URI}`)
+      console.log('  MONGODB_URI: configured')
       console.log(`  JWT_ACCESS_SECRET: ${maskSecret(env.JWT_ACCESS_SECRET)}`)
       console.log(`  JWT_REFRESH_SECRET: ${maskSecret(env.JWT_REFRESH_SECRET)}`)
       console.log(`  JWT_ACCESS_EXPIRY: ${env.JWT_ACCESS_EXPIRY}`)

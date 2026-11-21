@@ -16,6 +16,7 @@
 // the list, so both response types share one key.
 // ============================================================================
 
+import { API_URL } from '../../../config/api'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 // Keep these lists identical to the enums in backend RecurringTransaction.model.ts.
@@ -94,8 +95,6 @@ export interface UpdateRecurringInput {
   endDate?: string | null
   isActive?: boolean
 }
-
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
 
 export const recurringApi = createApi({
   reducerPath: 'recurringApi',

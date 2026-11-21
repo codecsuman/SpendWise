@@ -81,7 +81,7 @@ export default function WorkspaceSidebar({
     !activeFolder && !activeTag && !pinnedOnly && !showArchived
 
   return (
-    <aside className="flex h-full flex-col gap-5 overflow-y-auto rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <aside className="flex h-full flex-col gap-5 overflow-y-auto surface-card p-4">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Library

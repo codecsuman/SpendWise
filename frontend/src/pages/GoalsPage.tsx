@@ -1,3 +1,4 @@
+import CustomSelect from '../components/ui/CustomSelect'
 // ============================================================================
 // GoalsPage.tsx — savings goals with a target amount and a target date.
 //
@@ -9,8 +10,9 @@
 // form below stays read-only about the rest of the goal.
 // ============================================================================
 
+import DateField from '../components/DateField'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { Bookmark, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import type { CSSProperties, FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
@@ -72,7 +74,7 @@ const statusLabels: Record<GoalStatus, string> = {
 
 const statusClasses: Record<GoalStatus, string> = {
   active: 'bg-primary/10 text-primary',
-  completed: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  completed: 'status-success',
   cancelled: 'bg-muted text-muted-foreground',
 }
 
@@ -80,7 +82,7 @@ const statusClasses: Record<GoalStatus, string> = {
 const currencies = ['INR', 'USD', 'EUR', 'GBP', 'CAD', 'AUD'] as const
 
 const inputClass =
-  'h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50'
+  'control-height form-control px-3'
 
 // --- FORM ------------------------------------------------------------------
 
@@ -197,12 +199,12 @@ function GoalForm({ goal, onDone }: GoalFormProps) {
       noValidate
     >
       {serverError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {serverError}
         </p>
       )}
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="goal-name" className="text-sm font-medium">
           Name
         </label>
@@ -220,7 +222,7 @@ function GoalForm({ goal, onDone }: GoalFormProps) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="goal-target" className="text-sm font-medium">
             Target amount
           </label>
@@ -241,7 +243,7 @@ function GoalForm({ goal, onDone }: GoalFormProps) {
           )}
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="goal-saved" className="text-sm font-medium">
             Already saved
           </label>
@@ -264,34 +266,31 @@ function GoalForm({ goal, onDone }: GoalFormProps) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="goal-currency" className="text-sm font-medium">
             Currency
           </label>
-          <select
+          <CustomSelect
             id="goal-currency"
             {...register('currency')}
             disabled={busy}
-            className={inputClass}
           >
             {currencies.map((currency) => (
               <option key={currency} value={currency}>
                 {currency}
               </option>
             ))}
-          </select>
+          </CustomSelect>
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="goal-date" className="text-sm font-medium">
             Target date
           </label>
-          <input
+          <DateField
             id="goal-date"
-            type="date"
             {...register('targetDate')}
             disabled={busy}
-            className={inputClass}
           />
           {errors.targetDate && (
             <p className="text-xs text-destructive">
@@ -302,24 +301,23 @@ function GoalForm({ goal, onDone }: GoalFormProps) {
       </div>
 
       {goal && (
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="goal-status" className="text-sm font-medium">
             Status
           </label>
-          <select
+          <CustomSelect
             id="goal-status"
             {...register('status')}
             disabled={busy}
-            className={inputClass}
           >
             <option value="active">Active</option>
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
-          </select>
+          </CustomSelect>
         </div>
       )}
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="goal-note" className="text-sm font-medium">
           Note <span className="text-muted-foreground">(optional)</span>
         </label>
@@ -329,7 +327,7 @@ function GoalForm({ goal, onDone }: GoalFormProps) {
           placeholder="Why this goal matters"
           {...register('note')}
           disabled={busy}
-          className="rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50"
+          className="form-control px-3 py-2"
         />
         {errors.note && (
           <p className="text-xs text-destructive">{errors.note.message}</p>
@@ -337,14 +335,15 @@ function GoalForm({ goal, onDone }: GoalFormProps) {
       </div>
 
       <div className="flex gap-2">
-        <button type="submit" disabled={busy} className="btn-3d sm">
+        <button type="submit" disabled={busy} className={goal ? "button-primary button-save" : "button-primary"}>
+          {goal && !busy && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
           {busy ? 'Saving…' : goal ? 'Save changes' : 'Create goal'}
         </button>
         <button
           type="button"
           onClick={onDone}
           disabled={busy}
-          className="h-9 rounded-md border border-border px-4 text-sm font-medium transition hover:bg-muted disabled:opacity-60"
+          className="button-secondary h-9"
         >
           Cancel
         </button>
@@ -384,7 +383,7 @@ function ContributeForm({ goal }: ContributeFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-1.5">
+    <form onSubmit={handleSubmit} className="field-stack">
       <div className="flex gap-2">
         <input
           type="number"
@@ -396,7 +395,7 @@ function ContributeForm({ goal }: ContributeFormProps) {
           disabled={isLoading}
           className={`${inputClass} min-w-0 flex-1`}
         />
-        <button type="submit" disabled={isLoading} className="btn-3d sm">
+        <button type="submit" disabled={isLoading} className="button-primary">
           {isLoading ? 'Adding…' : 'Add'}
         </button>
       </div>
@@ -422,13 +421,13 @@ function GoalCard({ goal, isDeleting, onEdit, onDelete }: GoalCardProps) {
     new Date(goal.targetDate).getTime() < TODAY_MS
 
   return (
-    <article className="card-lift flex flex-col gap-4 border border-border p-4">
+    <article className="surface-card flex flex-col gap-4 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="truncate text-sm font-semibold">{goal.name}</h2>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <span
-              className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${statusClasses[goal.status]}`}
+              className={`status-badge ${statusClasses[goal.status]}`}
             >
               {statusLabels[goal.status]}
             </span>
@@ -576,21 +575,21 @@ export default function GoalsPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+      <header className="page-heading flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Goals</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="page-title">Goals</h1>
+          <p className="page-description">
             {goals.length} goal{goals.length === 1 ? '' : 's'} shown
           </p>
         </div>
-        <button type="button" onClick={openCreate} className="btn-3d sm">
+        <button type="button" onClick={openCreate} className="button-primary">
           <Plus className="mr-1 inline size-4" />
           New goal
         </button>
       </header>
 
       {formOpen && (
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section className="surface-card p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-base font-semibold">
               {editing ? 'Edit goal' : 'New goal'}
@@ -634,7 +633,7 @@ export default function GoalsPage() {
 
       {/* ---------------- CHART ---------------- */}
       {goals.length > 0 && (
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section className="surface-card p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-semibold">Progress by goal</h2>
             <span className="text-xs text-muted-foreground">
@@ -646,31 +645,29 @@ export default function GoalsPage() {
       )}
 
       {/* ---------------- FILTERS ---------------- */}
-      <section className="flex flex-wrap items-center gap-2">
-        <select
+      <section className="filter-bar">
+        <CustomSelect
           value={status}
           onChange={(event) =>
             setStatus(event.target.value as GoalStatus | 'all')
           }
           aria-label="Filter by status"
-          className={inputClass}
         >
           <option value="all">All statuses</option>
           <option value="active">Active</option>
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
-        </select>
+        </CustomSelect>
 
-        <select
+        <CustomSelect
           value={sort}
           onChange={(event) => setSort(event.target.value as GoalSort)}
           aria-label="Sort goals"
-          className={inputClass}
         >
           <option value="target">Target date</option>
           <option value="newest">Newest</option>
           <option value="progress">Progress</option>
-        </select>
+        </CustomSelect>
 
         {isFetching && !isLoading && (
           <Loader2 className="size-4 animate-spin text-muted-foreground" />
@@ -678,12 +675,12 @@ export default function GoalsPage() {
       </section>
 
       {error && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {getErrorMessage(error)}
         </p>
       )}
       {actionError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {actionError}
         </p>
       )}
@@ -695,7 +692,7 @@ export default function GoalsPage() {
           <div className="skeleton h-56" />
         </div>
       ) : goals.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-sm">
+        <div className="surface-card p-6 text-sm text-muted-foreground">
           No goals match these filters.
           <span className="mt-1 block text-xs">
             Create one with “New goal”. The server completes it automatically

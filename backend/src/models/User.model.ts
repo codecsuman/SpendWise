@@ -4,6 +4,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   name: string;
+  avatarUrl?: string;
   currency: string;
   timezone: string;
   language: string;
@@ -35,6 +36,7 @@ const userSchema = new Schema<IUser>(
       required: true,
       trim: true,
     },
+    avatarUrl: String,
     currency: {
       type: String,
       enum: ['INR', 'USD', 'EUR', 'GBP', 'CAD', 'AUD'],

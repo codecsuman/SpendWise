@@ -6,7 +6,6 @@
 //   lg: notes list | editor
 //   mobile: one panel at a time
 //
-// The shell (MainLayout) already supplies page-workspace and the background.
 // This page returns content only, never another page-wrap.
 // ============================================================================
 
@@ -207,13 +206,13 @@ export default function WorkspacePage() {
       />
 
       {actionError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {actionError}
         </p>
       )}
 
       {listError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {getApiErrorMessage(listError)}
         </p>
       )}
@@ -223,13 +222,13 @@ export default function WorkspacePage() {
         {sidebarOpen && (
           <div
             onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 z-30 bg-black/40 xl:hidden"
+            className="fixed inset-0 z-30 theme-scrim xl:hidden"
           />
         )}
 
         {/* Sidebar: fixed drawer on mobile, first grid column on xl */}
         <div
-          className={`fixed inset-y-0 left-0 z-40 w-72 p-3 transition-transform xl:static xl:z-auto xl:min-h-0 xl:w-auto xl:translate-x-0 xl:p-0 ${
+          className={`fixed inset-y-0 left-0 z-40 w-72 max-w-[85vw] overscroll-contain p-3 transition-transform xl:static xl:z-auto xl:min-h-0 xl:w-auto xl:max-w-none xl:translate-x-0 xl:p-0 ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -314,7 +313,7 @@ export default function WorkspacePage() {
               <p className="max-w-64 text-xs text-muted-foreground">
                 {getApiErrorMessage(noteError)}
               </p>
-              <button type="button" onClick={closeEditor} className="btn-3d sm">
+              <button type="button" onClick={closeEditor} className="button-primary">
                 Back to all notes
               </button>
             </div>
@@ -333,7 +332,7 @@ export default function WorkspacePage() {
               <button
                 type="button"
                 onClick={() => setQuickOpen(true)}
-                className="btn-3d sm"
+                className="button-primary"
               >
                 <Plus className="mr-1 inline size-4" />
                 Quick note

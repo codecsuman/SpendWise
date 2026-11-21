@@ -12,6 +12,7 @@
 // (not `id` like the budget endpoints, which map it by hand).
 // ============================================================================
 
+import { API_URL } from '../../../config/api'
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 // Keep these lists identical to the enums in backend Goal.model.ts.
@@ -77,8 +78,6 @@ export interface UpdateGoalInput {
 export interface ContributeGoalInput {
   amount: number;
 }
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
 export const goalApi = createApi({
   reducerPath: "goalApi",

@@ -73,7 +73,7 @@ export default function RecurringCard({
   const isIncome = rule.type === 'income'
 
   return (
-    <article className="card-lift flex flex-col gap-4 border border-border p-4">
+    <article className="surface-card flex flex-col gap-4 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
           {/* Category badge. The color comes from the database, not a fixed hex. */}
@@ -94,9 +94,9 @@ export default function RecurringCard({
             </h2>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
               <span
-                className={`inline-block rounded-full px-2 py-0.5 font-medium ${
+                className={`status-badge ${
                   isIncome
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                    ? 'status-success'
                     : 'bg-destructive/10 text-destructive'
                 }`}
               >

@@ -1,3 +1,4 @@
+import CustomSelect from '../../../components/ui/CustomSelect'
 // ============================================================================
 // LinkedNotes.tsx — connect a note to a transaction, budget, goal or category
 // without copying the record into the note.
@@ -32,9 +33,6 @@ interface ResourceOption {
 interface ResourcePickerProps {
   onAdd: (link: NoteLink) => void
 }
-
-const selectClass =
-  'h-9 min-w-0 rounded-md border border-input bg-background px-2 text-xs outline-none focus:ring-2 focus:ring-ring/50'
 
 function ResourcePicker({ onAdd }: ResourcePickerProps) {
   const [type, setType] = useState<NoteResourceType>('goal')
@@ -95,27 +93,25 @@ function ResourcePicker({ onAdd }: ResourcePickerProps) {
   return (
     <div className="mt-3 flex flex-col gap-2 rounded-lg border border-border bg-card p-3">
       <div className="grid gap-2 sm:grid-cols-2">
-        <select
+        <CustomSelect
           value={type}
           onChange={(event) => {
             setType(event.target.value as NoteResourceType)
             setResourceId('')
           }}
           aria-label="Resource type"
-          className={selectClass}
         >
           {Object.entries(RESOURCE_LABELS).map(([value, label]) => (
             <option key={value} value={value}>
               {label}
             </option>
           ))}
-        </select>
+        </CustomSelect>
 
-        <select
+        <CustomSelect
           value={resourceId}
           onChange={(event) => setResourceId(event.target.value)}
           aria-label="Resource"
-          className={selectClass}
         >
           <option value="">Choose a {RESOURCE_LABELS[type].toLowerCase()}…</option>
           {options.map((option) => (
@@ -123,7 +119,7 @@ function ResourcePicker({ onAdd }: ResourcePickerProps) {
               {option.label}
             </option>
           ))}
-        </select>
+        </CustomSelect>
       </div>
 
       {options.length === 0 && (
@@ -139,7 +135,7 @@ function ResourcePicker({ onAdd }: ResourcePickerProps) {
           if (!selected) return
           onAdd({ type, id: selected.id, label: selected.label })
         }}
-        className="btn-3d sm self-start"
+        className="button-primary self-start"
       >
         <Plus className="mr-1 inline size-3.5" />
         Link

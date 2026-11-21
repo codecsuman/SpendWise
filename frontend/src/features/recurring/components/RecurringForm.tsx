@@ -1,3 +1,5 @@
+import CustomSelect from '../../../components/ui/CustomSelect'
+import { Bookmark } from 'lucide-react'
 // ============================================================================
 // RecurringForm.tsx — create / edit one recurring rule.
 //
@@ -9,6 +11,7 @@
 // because a client that controls the schedule could make the worker loop.
 // ============================================================================
 
+import DateField from '../../../components/DateField'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, useWatch } from 'react-hook-form'
 import { useState } from 'react'
@@ -48,7 +51,7 @@ const frequencyLabels: Record<RecurrenceFrequency, string> = {
 const TODAY = new Date().toISOString().slice(0, 10)
 
 const inputClass =
-  'h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50 disabled:opacity-50'
+  'control-height form-control px-3'
 
 const ruleSchema = z
   .object({
@@ -196,28 +199,27 @@ export default function RecurringForm({ rule, onDone }: RecurringFormProps) {
       noValidate
     >
       {serverError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="form-error">
           {serverError}
         </p>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="rule-type" className="text-sm font-medium">
             Type
           </label>
-          <select
+          <CustomSelect
             id="rule-type"
             {...register('type')}
             disabled={busy}
-            className={inputClass}
           >
             <option value="expense">Expense</option>
             <option value="income">Income</option>
-          </select>
+          </CustomSelect>
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="rule-amount" className="text-sm font-medium">
             Amount
           </label>
@@ -238,33 +240,33 @@ export default function RecurringForm({ rule, onDone }: RecurringFormProps) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="rule-currency" className="text-sm font-medium">
             Currency
           </label>
-          <select
+          <CustomSelect
             id="rule-currency"
             {...register('currency')}
             disabled={busy}
-            className={inputClass}
           >
             {currencies.map((currency) => (
               <option key={currency} value={currency}>
                 {currency}
               </option>
             ))}
-          </select>
+          </CustomSelect>
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="rule-category" className="text-sm font-medium">
             Category
           </label>
-          <select
+          <CustomSelect
             id="rule-category"
             {...register('category')}
+            aria-invalid={Boolean(errors.category)}
+            aria-describedby={errors.category ? 'rule-category-error' : undefined}
             disabled={busy || isLoadingCategories}
-            className={inputClass}
           >
             <option value="">
               {isLoadingCategories ? 'Loading…' : 'Pick a category'}
@@ -274,16 +276,16 @@ export default function RecurringForm({ rule, onDone }: RecurringFormProps) {
                 {category.name}
               </option>
             ))}
-          </select>
+          </CustomSelect>
           {errors.category && (
-            <p className="text-xs text-destructive">
+            <p id="rule-category-error" className="text-xs text-destructive">
               {errors.category.message}
             </p>
           )}
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="rule-description" className="text-sm font-medium">
           Description{' '}
           <span className="text-muted-foreground">(optional)</span>
@@ -304,7 +306,7 @@ export default function RecurringForm({ rule, onDone }: RecurringFormProps) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="rule-frequency" className="text-sm font-medium">
             Repeats every
           </label>
@@ -320,11 +322,11 @@ export default function RecurringForm({ rule, onDone }: RecurringFormProps) {
               disabled={busy}
               className={`${inputClass} w-20`}
             />
-            <select
+            <CustomSelect
               id="rule-frequency"
               {...register('frequency')}
               disabled={busy}
-              className={`${inputClass} flex-1`}
+              className="flex-1"
             >
               {frequencies.map((frequency) => (
                 <option key={frequency} value={frequency}>
@@ -332,7 +334,7 @@ export default function RecurringForm({ rule, onDone }: RecurringFormProps) {
                   {Number(intervalValue) > 1 ? 's' : ''}
                 </option>
               ))}
-            </select>
+            </CustomSelect>
           </div>
           {errors.interval && (
             <p className="text-xs text-destructive">
@@ -341,16 +343,14 @@ export default function RecurringForm({ rule, onDone }: RecurringFormProps) {
           )}
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="field-stack">
           <label htmlFor="rule-start" className="text-sm font-medium">
             Starts on
           </label>
-          <input
+          <DateField
             id="rule-start"
-            type="date"
             {...register('startDate')}
             disabled={busy}
-            className={inputClass}
           />
           {errors.startDate && (
             <p className="text-xs text-destructive">
@@ -360,16 +360,14 @@ export default function RecurringForm({ rule, onDone }: RecurringFormProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-stack">
         <label htmlFor="rule-end" className="text-sm font-medium">
           Ends on <span className="text-muted-foreground">(optional)</span>
         </label>
-        <input
+        <DateField
           id="rule-end"
-          type="date"
           {...register('endDate')}
           disabled={busy}
-          className={inputClass}
         />
         {errors.endDate && (
           <p className="text-xs text-destructive">{errors.endDate.message}</p>
@@ -377,14 +375,15 @@ export default function RecurringForm({ rule, onDone }: RecurringFormProps) {
       </div>
 
       <div className="flex gap-2">
-        <button type="submit" disabled={busy} className="btn-3d sm">
+        <button type="submit" disabled={busy} className={rule ? "button-primary button-save" : "button-primary"}>
+          {rule && !busy && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
           {busy ? 'Saving…' : rule ? 'Save changes' : 'Create rule'}
         </button>
         <button
           type="button"
           onClick={onDone}
           disabled={busy}
-          className="h-9 rounded-md border border-border px-4 text-sm font-medium transition hover:bg-muted disabled:opacity-60"
+          className="button-secondary h-9"
         >
           Cancel
         </button>

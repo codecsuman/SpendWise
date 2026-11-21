@@ -12,12 +12,13 @@
 
 import mongoose from 'mongoose'
 import { env } from './env.js'
+import { logger } from './logger.js'
 
 let isConnected = false
 
 export async function connectDB(): Promise<void> {
   if (isConnected) {
-    console.log('📦 MongoDB already connected')
+    logger.debug('MongoDB already connected')
     return
   }
 
@@ -25,28 +26,28 @@ export async function connectDB(): Promise<void> {
     const conn = await mongoose.connect(env.MONGODB_URI)
 
     isConnected = true
-    console.log(`📦 MongoDB connected: ${conn.connection.host}`)
+    logger.info({ host: conn.connection.host }, 'MongoDB connected')
 
     // Connection event listeners
     mongoose.connection.on('error', (err) => {
-      console.error('❌ MongoDB connection error:', err)
+      logger.error({ err }, 'MongoDB connection error')
       isConnected = false
     })
 
     mongoose.connection.on('disconnected', () => {
-      console.log('📦 MongoDB disconnected')
+      logger.warn('MongoDB disconnected')
       isConnected = false
     })
 
     // Graceful shutdown
     process.on('SIGINT', async () => {
       await mongoose.connection.close()
-      console.log('📦 MongoDB connection closed due to app termination')
+      logger.info('MongoDB connection closed due to app termination')
       process.exit(0)
     })
 
   } catch (error) {
-    console.error('❌ MongoDB connection failed:', error)
+    logger.error({ err: error }, 'MongoDB connection failed')
     process.exit(1)
   }
 }

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
 import { env } from "../config/env.js";
+import { logger } from "../config/logger.js";
 import { AppError } from "../utils/AppError.js";
 
 export function errorMiddleware(
@@ -9,7 +10,7 @@ export function errorMiddleware(
   res: Response,
   _next: NextFunction,
 ): void {
-  console.error("❌ Error:", err);
+  logger.error({ err }, "Request failed");
 
   // Zod validation errors
   if (err instanceof ZodError) {
