@@ -4,20 +4,37 @@
 // A "store" is one JavaScript object that holds all shared state. Components
 // read from it with hooks instead of passing props down through 5 levels.
 //
-// Right now the only reducer is authApi. As features arrive (transactions,
-// budgets, goals) each one adds a line here.
+// Each feature API registers its own reducer and middleware here.
 // ============================================================================
 
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit'
 import { authApi } from '../features/auth/services/authApi'
 import {profileApi} from '../features/profile/services/profileApi'
 import { transactionApi } from "../features/transactions/services/transactionApi";
 import { categoryApi } from '../features/categories/services/categoryApi'
 import { budgetApi } from '../features/budgets/services/budgetApi'
+import { csvApi } from '../features/csv/services/csvApi'
 import { analyticsApi } from '../features/analytics/services/analyticsApi'
 import { goalApi } from '../features/goals/services/goalApi'
 import { workspaceApi } from '../features/workspace/services/workspaceApi'
 import { recurringApi } from '../features/recurring/services/recurringApi'
+
+const transactionChanges = createListenerMiddleware()
+
+transactionChanges.startListening({
+  matcher: isAnyOf(
+    transactionApi.endpoints.createTransaction.matchFulfilled,
+    transactionApi.endpoints.updateTransaction.matchFulfilled,
+    transactionApi.endpoints.deleteTransaction.matchFulfilled,
+    csvApi.endpoints.importCsv.matchFulfilled,
+  ),
+  effect: (action, { dispatch }) => {
+    if (csvApi.endpoints.importCsv.matchFulfilled(action) && action.payload.result.imported === 0) return
+
+    dispatch(analyticsApi.util.invalidateTags(['Analytics']))
+    dispatch(budgetApi.util.invalidateTags(['Budget']))
+  },
+})
 
 export const store = configureStore({
   reducer: {
@@ -37,7 +54,7 @@ export const store = configureStore({
   // RTK Query ships as middleware. Without this line, caching, invalidation
   // and refetching silently stop working. Always add it.
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(
+    getDefaultMiddleware().prepend(transactionChanges.middleware).concat(
       authApi.middleware,
       profileApi.middleware,
       transactionApi.middleware,

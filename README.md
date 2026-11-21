@@ -2,22 +2,28 @@
 
 SpendWise is a personal finance and spending tracker built with the MERN stack and TypeScript. I am building it as a full-stack learning project, one feature at a time.
 
+## Transactions demo
+
+![SpendWise demo showing an expense being created, edited, filtered, and reflected in a budget](frontend/public/media/transactions-demo.gif)
+
+The demo uses sample data. Create an expense, edit its amount, and find it by category and date. The budget reflects the change without a browser reload.
+
 ## Project status
 
-**57% on the roadmap tracker as of 2026-11-20.** The tracker marks 8 of 18 phases complete, 3 in progress, and 7 pending. It measures configured file milestones. The sections below describe the current workspace and its remaining work.
+**57% on the roadmap tracker as of 2026-11-22.** The tracker marks 8 of 18 phases complete, 3 in progress, and 7 pending. It measures configured file milestones.
 
 ## Features
 
 | Area | Available in the workspace |
 |---|---|
 | Authentication and profile | Registration, login, logout, cookie-based sessions, profile settings, password changes, and Cloudinary profile photo upload |
-| Transactions and categories | Search, filters, sorting, pagination, deletion, category management, and CSV preview and import on Transactions |
+| Transactions and categories | Manual create, edit, and delete, currency selection, search, category and date filters, sorting, pagination, category management, and CSV preview and import |
 | Planning | Monthly budgets, savings goals, contributions, and recurring transaction rules |
 | Reporting | Dashboard and analytics with day and month filters, category breakdowns, historical trends, and budget spending through a selected date |
 | Workspace | Notes, quick notes, linked records, and a calculator |
 | Interface | Responsive filters and forms with shared dropdowns and date controls. Browser-saved Appearance settings include a continuous 1–100 theme, per-page accents, scale, spacing, corners, shadows, and motion. |
 
-The transactions API supports creating and editing records. The matching manual-entry UI is pending. The local recurring scheduler starts with the backend. Open **Settings** in the sidebar to customize the interface or restore defaults.
+Successful transaction changes refresh the ledger, Dashboard, Analytics, and Budgets. The local recurring scheduler starts with the backend. Open **Settings** in the sidebar to customize the interface or restore defaults.
 
 ## Tech stack and structure
 
@@ -76,7 +82,7 @@ Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` i
 
 ## Verification and roadmap
 
-The backend health endpoint, frontend build and lint, and selected browser interactions have passed local checks. Live Cloudinary upload and full CSV end-to-end verification are still pending.
+The backend health endpoint, frontend build and lint, and a signed-in Chrome test against local Express and MongoDB passed. The test covered transaction creation, editing, filters, deletion, and refreshed Dashboard and Budgets totals. Live Cloudinary upload and full CSV end-to-end verification are still pending.
 
 Next on the roadmap are notifications, Redis caching, RabbitMQ, real-time features, automated tests, Docker, CI/CD, and AWS deployment.
 

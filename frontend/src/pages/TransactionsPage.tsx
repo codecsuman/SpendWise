@@ -1,19 +1,20 @@
 import CustomSelect from '../components/ui/CustomSelect'
+import DateField from '../components/DateField'
 // ============================================================================
 // TransactionsPage.tsx — the user's money in and out.
 //
-// This page only READS and DELETES for now. Creating or editing a transaction
-// needs a real Category _id, and Categories arrive in Phase 5. Once they
-// exist, add the create/edit form here.
+// The shared form creates and edits transactions using existing category IDs.
 //
 // The backend already scopes every row to the logged-in user, so this page
 // never sends a user id — only filters.
 // ============================================================================
 
-import { ArrowLeft, ArrowRight, Loader2, Search, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowLeft, ArrowRight, Loader2, Pencil, Search, Trash2 } from 'lucide-react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
+import { useListCategoriesQuery } from '../features/categories/services/categoryApi'
 import CsvPreview from '../features/csv/components/CsvPreview'
+import TransactionForm from '../features/transactions/components/TransactionForm'
 
 import {
   useDeleteTransactionMutation,
@@ -46,19 +47,38 @@ function formatAmount(transaction: Transaction): string {
 export default function TransactionsPage() {
   const [page, setPage] = useState(1)
   const [type, setType] = useState<TransactionType | ''>('')
+  const [category, setCategory] = useState('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [dateRange, setDateRange] = useState({ from: '', to: '' })
+  const [dateFieldKey, setDateFieldKey] = useState(0)
   const [sort, setSort] = useState<TransactionSort>('newest')
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
+  const editTrigger = useRef<HTMLButtonElement | null>(null)
+
+  useLayoutEffect(() => {
+    if (editingTransaction || !editTrigger.current) return
+    editTrigger.current.focus()
+    editTrigger.current = null
+  }, [editingTransaction])
+
+  const closeEditor = () => setEditingTransaction(null)
 
   // Two states on purpose: typing does not refetch on every keystroke.
   // Submitting the search form copies searchInput into search, which is the
   // only value the query watches.
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
+  const invalidRange = Boolean(fromDate && toDate && fromDate > toDate)
 
   const { data, isLoading, isFetching, error } = useListTransactionsQuery({
     page,
     limit,
     // undefined keys are skipped by fetchBaseQuery, so they never reach the URL.
     type: type || undefined,
+    category: category || undefined,
+    from: dateRange.from || undefined,
+    to: dateRange.to || undefined,
     search: search || undefined,
     sort,
   })
@@ -66,6 +86,25 @@ export default function TransactionsPage() {
   const [deleteTransaction, { isLoading: isDeleting }] =
     useDeleteTransactionMutation()
   const [deleteError, setDeleteError] = useState('')
+  const { data: categoryData, isLoading: loadingCategories } = useListCategoriesQuery()
+  const categoryNames = new Map(categoryData?.categories.map(({ _id, name }) => [_id, name]))
+
+  function clearDates() {
+    setFromDate('')
+    setToDate('')
+    setDateRange({ from: '', to: '' })
+    setDateFieldKey((key) => key + 1)
+    setPage(1)
+  }
+
+  function resetFilters() {
+    setSearchInput('')
+    setSearch('')
+    setType('')
+    setCategory('')
+    setSort('newest')
+    clearDates()
+  }
 
   const applySearch = (event: FormEvent) => {
     event.preventDefault()
@@ -104,6 +143,13 @@ export default function TransactionsPage() {
           </p>
         </div>
       </header>
+
+      {editingTransaction ? (
+        <TransactionForm key={editingTransaction._id} transaction={editingTransaction}
+          onUpdated={closeEditor} onCancel={closeEditor} />
+      ) : (
+        <TransactionForm key="new" onCreated={() => setPage(1)} />
+      )}
 
       {/* Show the headers and sample rows before the user maps any columns. */}
       <CsvPreview />
@@ -144,6 +190,24 @@ export default function TransactionsPage() {
         </CustomSelect>
 
         <CustomSelect
+          aria-label="Filter transactions by category"
+          value={category}
+          disabled={loadingCategories}
+          onChange={(event) => {
+            setCategory(event.target.value)
+            setPage(1)
+          }}
+        >
+          <option value="">{loadingCategories ? 'Loading categories…' : 'All categories'}</option>
+          {category && !categoryNames.has(category) && (
+            <option value={category}>Category unavailable</option>
+          )}
+          {categoryData?.categories.map(({ _id, name }) => (
+            <option key={_id} value={_id}>{name}</option>
+          ))}
+        </CustomSelect>
+
+        <CustomSelect
           aria-label="Sort transactions"
           value={sort}
           onChange={(event) => {
@@ -157,10 +221,47 @@ export default function TransactionsPage() {
           <option value="lowest">Lowest amount</option>
         </CustomSelect>
 
+        <button type="button" className="button-secondary control-height" onClick={resetFilters}>
+          Reset all filters
+        </button>
+
         {isFetching && !isLoading && (
           <Loader2 className="size-4 animate-spin text-muted-foreground" />
         )}
       </section>
+
+      <form
+        aria-label="Filter transactions by date range"
+        className="surface-card space-y-3 p-4"
+        onSubmit={(event) => {
+          event.preventDefault()
+          if (invalidRange) return
+          setDateRange({ from: fromDate, to: toDate })
+          setPage(1)
+        }}
+      >
+        <div className="filter-bar">
+          <div className="field-stack">
+            <label htmlFor="transactions-from">From</label>
+            <DateField key={`from-${dateFieldKey}`} id="transactions-from" value={fromDate}
+              onChange={(event) => setFromDate(event.target.value)} />
+          </div>
+          <div className="field-stack">
+            <label htmlFor="transactions-to">To</label>
+            <DateField key={`to-${dateFieldKey}`} id="transactions-to" value={toDate}
+              onChange={(event) => setToDate(event.target.value)} />
+          </div>
+          <button type="submit" className="button-primary control-height" disabled={invalidRange}>
+            Apply dates
+          </button>
+          <button type="button" className="button-secondary control-height" onClick={clearDates}>
+            Clear dates
+          </button>
+        </div>
+        {invalidRange && (
+          <p role="alert" className="form-error">The end date must be on or after the start date.</p>
+        )}
+      </form>
 
       {error && (
         <p className="form-error">
@@ -183,9 +284,6 @@ export default function TransactionsPage() {
         ) : transactions.length === 0 ? (
           <div className="p-6 text-sm text-muted-foreground">
             No transactions match these filters.
-            <span className="mt-1 block text-xs">
-              Creating one needs a category, which arrives in Phase 5.
-            </span>
           </div>
         ) : (
           <div className="relative overflow-x-auto">
@@ -206,7 +304,7 @@ export default function TransactionsPage() {
                     key={transaction._id}
                   >
                     <td className="whitespace-nowrap text-muted-foreground">
-                      {new Date(transaction.date).toLocaleDateString()}
+                      {new Date(transaction.date).toLocaleDateString(undefined, { timeZone: 'UTC' })}
                     </td>
                     <td>
                       <span
@@ -222,12 +320,9 @@ export default function TransactionsPage() {
                     <td className="max-w-60 truncate px-4 py-3">
                       {transaction.description || '—'}
                     </td>
-                    {/* No category names yet: show the id tail until Phase 5. */}
-                    <td
-                      className="font-mono text-xs text-muted-foreground"
-                      title={transaction.category}
-                    >
-                      #{transaction.category.slice(-6)}
+                    <td className="text-muted-foreground">
+                      {categoryNames.get(transaction.category)
+                        ?? (loadingCategories ? 'Loading category…' : 'Category unavailable')}
                     </td>
                     <td
                       className={`text-right font-medium whitespace-nowrap ${
@@ -239,11 +334,23 @@ export default function TransactionsPage() {
                       {transaction.type === 'income' ? '+' : '−'}
                       {formatAmount(transaction)}
                     </td>
-                    <td className="text-right">
+                    <td className="text-right whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          editTrigger.current = event.currentTarget
+                          setEditingTransaction(transaction)
+                        }}
+                        disabled={isDeleting || editingTransaction !== null}
+                        aria-label="Edit transaction"
+                        className="rounded-md p-1.5 text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:opacity-50"
+                      >
+                        <Pencil className="size-4" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => handleDelete(transaction._id)}
-                        disabled={isDeleting}
+                        disabled={isDeleting || editingTransaction?._id === transaction._id}
                         aria-label="Delete transaction"
                         className="rounded-md p-1.5 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
                       >
