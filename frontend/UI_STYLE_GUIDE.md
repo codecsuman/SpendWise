@@ -1,5 +1,93 @@
 # SpendWise UI + CSS Style Guide
 
+**Updated** 2026-11-22
+
+**Stylesheet** `frontend/src/index.css`
+
+## Appearance settings
+
+Open **Settings → Appearance** from the sidebar. Preferences apply across SpendWise as you change them and are saved in the current browser. **Reset to defaults** restores the device color mode and clears the saved overrides.
+
+### Light to dark
+
+| Position | Appearance |
+|---|---|
+| 1 | Brightest light surfaces |
+| 2–99 | The shared palette darkens one step at a time |
+| 100 | Darkest surfaces |
+
+Drag the slider or use **− / +** to select **Manual** and adjust the whole app immediately. **Light** selects 1, **Dark** selects 100, and **System** tracks the device’s color mode while the page is open. Manual mode remembers its last position. All positions use the same formula, `(position - 1) / 99`. Positions 49, 50, and 51 are ordinary adjacent points in the palette.
+
+Surfaces interpolate in OKLCH. Gamut mapping reduces chroma to keep computed colors within sRGB. Text, focus indicators, financial states, and chart colors have independent contrast rules. Text polarity can change when a surface gets dark enough to require lighter text. The engine applies the foreground and its surface together so an independent color animation cannot leave them out of sync.
+
+### Interface
+
+| Setting | Choices |
+|---|---|
+| Accent color | Different color on each page, Indigo, Blue, Teal, Rose |
+| Interface size | Default, Smaller, Larger |
+| Content spacing | Default, Compact, Spacious |
+| Corner shape | Default, Sharper, Rounder |
+| Shadows | Default, Off, Soft, Strong |
+| Motion | Use device setting, Reduce motion |
+
+Appearance uses the same `CustomSelect` as filters and forms. Menus open with a 150 ms fade and 2 px slide from the trigger side and close with a 100 ms fade. The app’s **Reduce motion** setting and the device’s reduced-motion preference minimize the motion.
+
+| File | Responsibility |
+|---|---|
+| `frontend/src/components/appearance.ts` | Valid options and defaults |
+| `frontend/src/components/ThemeControls.tsx` | Quick theme switch and intensity controls |
+| `frontend/src/components/themeStore.ts` | Early root initialization, browser persistence, migration, cross-tab synchronization, and System updates |
+| `frontend/src/components/themeColors.ts` | HEX conversion, OKLCH interpolation, gamut mapping, and contrast calculations |
+| `frontend/src/components/themePalette.ts` | Semantic palette and accent variants for a given slider position |
+| `frontend/src/index.css` | Semantic colors, shared component styles, route accents, and appearance overrides |
+
+The theme store writes semantic properties such as `--background`, `--card`, `--control-surface`, `--foreground`, `--income`, and `--expense` to the root. It uses `data-appearance-*` for interface preferences. Public and signed-in layouts use a `page-theme[data-page]` shell to select the route accent. Quick note and calculator render inside that shell. `CustomSelect` portals menus into the nearest themed shell or native dialog so the active accent carries through.
+
+## Page colors and depth
+
+| Page | Default accent |
+|---|---|
+| Home | Sky blue |
+| Login | Fuchsia |
+| Register | Cyan |
+| Dashboard | Indigo |
+| Transactions | Blue |
+| Categories | Orange |
+| Budgets | Violet |
+| Goals | Emerald |
+| Recurring | Amber |
+| Analytics | Rose |
+| Workspace | Teal |
+| Profile | Slate |
+| Settings | Purple |
+
+An accent glow starts at the top left behind the content and fades across the shell. Cards echo the accent on their leading edge, and layered shadows add depth. The glow strength adapts to the surface at every slider position and uses a short opacity transition where contrast permits. Workspace shares the glow without a looping background. **Shadows → Off** removes the standard card, overlay, sidebar, and button hover drop shadows.
+
+## Reusable styles
+
+| Area | Classes and tokens |
+|---|---|
+| Layout | `page-container`, `page-title`, `page-description`, and `filter-bar` |
+| Cards and overlays | `surface-card`, `stat-card`, and `floating-shadow` |
+| Buttons and fields | `button-primary`, `button-secondary`, `form-control`, and `form-error` |
+| Dropdowns and filter rows | `CustomSelect` shares the default 40 px control height with date fields, search fields, and filter buttons. Use `field-stack` for labels and `filter-bar` to align the field bottoms and wrap on narrow screens. Options can wrap in the menu, while long trigger values are truncated. Workspace folder suggestions use an editable autocomplete and Theme Intensity uses a disclosure. |
+| Tables and statuses | `data-table`, `status-badge`, `status-success`, `status-danger`, and `status-pending` |
+| Functional colors | `bg-card`, `text-foreground`, `text-muted-foreground`, `text-income`, `text-expense`, and `text-destructive` |
+| Shared date controls | `DateField` and `ReportPeriodField`. Typed values use Save and calendar selections use OK. |
+| Save actions | `button-primary button-save` adds a lime treatment. Use a bookmark icon alongside the existing action label. |
+| Search and uploads | Use native `type="search"` and `type="file"` inputs. Shared styles add rounded search fields and a gradient file-picker button. |
+| Loading | `terminal-status` provides terminal-style feedback for session checks and profile loading. |
+
+Use the semantic tokens when adding a component, particularly for foregrounds, surfaces, focus, shadows, and gaps. Check the component in light and dark modes as well as with a global accent and a changed interface size. Keep `auth-*` classes scoped to authentication screens.
+
+## Original style notes
+
+<details>
+<summary>Historical design reference from 2026-11-11</summary>
+
+This archive describes the earlier binary theme, wrappers, route map, and decorative effects. The sections above document the current implementation.
+
 **Source of truth:** `frontend/src/index.css`
 **Last updated:** 2026-11-11
 
@@ -177,6 +265,7 @@ and Delete only. Do not use red for normal actions.
 |---|---|
 | `nav-link` | Sidebar link in the page color |
 | `nav-link active` | Current page, filled with the page gradient |
+| `quick-actions` | Floating Quick Note / Calculator stack; respects safe-area insets |
 | `search-box` + `search-input` | Search field |
 | `theme-switch` | 3D light/dark switch (CSS only; not wired yet) |
 | `float-shape` | Floating colored circle |
@@ -212,6 +301,9 @@ and Delete only. Do not use red for normal actions.
 - Brand badge / avatar: `bg-primary` (follows the page theme)
 - Header: `bg-background/80` (follows the page theme)
 - Content: plain `<main className="flex-1 p-4 md:p-6">`
+- Routes are code-split with `React.lazy`; keep new pages lazy in `App.tsx` so the entry bundle stays small.
+- Mobile drawer: closes on link tap or Escape, locks page scroll, caps at `85vw`, and returns focus to the menu button.
+- The shell uses `min-h-dvh` and safe-area padding so mobile browser chrome does not clip the page.
 
 ### Home — `App.tsx`
 - Wrapper: `page-wrap aurora fx page-analytics`
@@ -326,3 +418,5 @@ When you change UI code, update this file too:
 - [ ] New theme token? Add it to section 2.
 - [ ] Fixed a known gap? Tick it in section 9.
 - [ ] Update the "Last updated" date at the top.
+
+</details>
