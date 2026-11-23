@@ -263,11 +263,13 @@ function BudgetForm({
         <button
           type="submit"
           disabled={busy}
-          className={budget ? "button-primary button-save h-9 px-4" : "button-primary h-9 px-4"}
+          className={budget ? "button-primary button-save relative h-9 px-4" : "button-primary relative h-9 px-4"}
         >
-          {busy && <Loader2 className="size-4 animate-spin" />}
-          {budget && !busy && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
-          {budget ? 'Save changes' : 'Create budget'}
+          {busy && <Loader2 className="absolute inset-0 m-auto size-4 animate-spin" aria-hidden="true" />}
+          <span className={`inline-flex items-center gap-2${busy ? ' opacity-0' : ''}`}>
+            {budget && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
+            {budget ? 'Save changes' : 'Create budget'}
+          </span>
         </button>
         <button
           type="button"

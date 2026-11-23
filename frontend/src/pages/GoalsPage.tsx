@@ -335,9 +335,12 @@ function GoalForm({ goal, onDone }: GoalFormProps) {
       </div>
 
       <div className="flex gap-2">
-        <button type="submit" disabled={busy} className={goal ? "button-primary button-save" : "button-primary"}>
-          {goal && !busy && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
-          {busy ? 'Saving…' : goal ? 'Save changes' : 'Create goal'}
+        <button type="submit" disabled={busy} className={goal ? "button-primary button-save relative" : "button-primary relative"}>
+          {busy && <Loader2 className="absolute inset-0 m-auto size-4 animate-spin" aria-hidden="true" />}
+          <span className={`inline-flex items-center gap-2${busy ? ' opacity-0' : ''}`}>
+            {goal && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
+            {goal ? 'Save changes' : 'Create goal'}
+          </span>
         </button>
         <button
           type="button"
@@ -395,8 +398,9 @@ function ContributeForm({ goal }: ContributeFormProps) {
           disabled={isLoading}
           className={`${inputClass} min-w-0 flex-1`}
         />
-        <button type="submit" disabled={isLoading} className="button-primary">
-          {isLoading ? 'Adding…' : 'Add'}
+        <button type="submit" disabled={isLoading} className="button-primary relative">
+          {isLoading && <Loader2 className="absolute inset-0 m-auto size-4 animate-spin" aria-hidden="true" />}
+          <span className={isLoading ? 'opacity-0' : undefined}>Add</span>
         </button>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}

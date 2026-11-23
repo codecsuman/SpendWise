@@ -22,6 +22,7 @@
 import { TransactionRepository } from '../repositories/transaction.repository.js';
 import { RecurringTransactionRepository } from '../repositories/recurring.repository.js';
 import { nextRunDate } from '../services/recurring.service.js';
+import { budgetService } from '../services/budget.service.js';
 import { logger } from '../config/logger.js';
 
 const recurringRepository = new RecurringTransactionRepository();
@@ -81,6 +82,21 @@ export async function processDueRecurring(now = new Date()): Promise<number> {
         });
 
         created += 1;
+
+        if (rule.type === 'expense') {
+          try {
+            await budgetService.checkSpendingAlert(
+              userId,
+              String(rule.category),
+              dueDate
+            );
+          } catch (error) {
+            logger.warn(
+              { err: error, ruleId, dueDate: dueDate.toISOString() },
+              'Failed to check budget alert after recurring expense'
+            );
+          }
+        }
       } catch (error) {
         // The schedule already moved, so a broken rule cannot create a hot
         // loop of retries. The skipped occurrence is traceable by its date.

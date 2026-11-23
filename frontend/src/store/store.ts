@@ -18,6 +18,7 @@ import { analyticsApi } from '../features/analytics/services/analyticsApi'
 import { goalApi } from '../features/goals/services/goalApi'
 import { workspaceApi } from '../features/workspace/services/workspaceApi'
 import { recurringApi } from '../features/recurring/services/recurringApi'
+import { notificationApi } from '../features/notifications/services/notificationApi'
 
 const transactionChanges = createListenerMiddleware()
 
@@ -49,6 +50,7 @@ export const store = configureStore({
     [goalApi.reducerPath]: goalApi.reducer,
     [workspaceApi.reducerPath]: workspaceApi.reducer,
     [recurringApi.reducerPath]: recurringApi.reducer,
+    [notificationApi.reducerPath]: notificationApi.reducer,
   },
 
   // RTK Query ships as middleware. Without this line, caching, invalidation
@@ -63,7 +65,8 @@ export const store = configureStore({
       analyticsApi.middleware,
       goalApi.middleware,
       workspaceApi.middleware,
-      recurringApi.middleware
+      recurringApi.middleware,
+      notificationApi.middleware
     ),
 })
 

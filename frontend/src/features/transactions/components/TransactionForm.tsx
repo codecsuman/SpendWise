@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Loader2 } from 'lucide-react'
 import DateField from '../../../components/DateField'
 import CustomSelect from '../../../components/ui/CustomSelect'
 import { useListCategoriesQuery } from '../../categories/services/categoryApi'
@@ -147,8 +148,11 @@ export default function TransactionForm(props: Props) {
       {isError && <p role="alert" className="form-error">Could not load categories.</p>}
       {error && <p role="alert" className="form-error">{error}</p>}
       <div className="flex flex-wrap gap-2">
-        <button type="submit" className="button-primary" disabled={saving || !selectedCategory}>
-          {saving ? 'Saving…' : props.transaction ? 'Save changes' : 'Save transaction'}
+        <button type="submit" className="button-primary relative" disabled={saving || !selectedCategory}>
+          {saving && <Loader2 className="absolute inset-0 m-auto size-4 animate-spin" aria-hidden="true" />}
+          <span className={saving ? 'opacity-0' : undefined}>
+            {props.transaction ? 'Save changes' : 'Save transaction'}
+          </span>
         </button>
         {props.transaction && (
           <button type="button" className="button-secondary" onClick={props.onCancel} disabled={saving}>

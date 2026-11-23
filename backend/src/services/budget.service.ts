@@ -21,6 +21,7 @@ import { BudgetRepository } from '../repositories/budget.repository.js';
 import { CategoryRepository } from '../repositories/category.repository.js';
 import { TransactionRepository } from '../repositories/transaction.repository.js';
 import { AppError } from '../utils/AppError.js';
+import { NotificationService } from './notification.service.js';
 import type { IBudget } from '../models/Budget.model.js';
 import type {
   CreateBudgetInput,
@@ -31,6 +32,7 @@ import type {
 const budgetRepository = new BudgetRepository();
 const categoryRepository = new CategoryRepository();
 const transactionRepository = new TransactionRepository();
+const notificationService = new NotificationService();
 
 export type BudgetStatus = 'normal' | 'warning' | 'exceeded';
 
@@ -160,6 +162,36 @@ export class BudgetService {
     const spent = await this.spentForMonth(userId, budget.month);
 
     return spent.get(String(budget.category)) ?? 0;
+  }
+
+  async checkSpendingAlert(
+    userId: string,
+    categoryId: string,
+    date: Date
+  ): Promise<void> {
+    const [budget] = await budgetRepository.findManyForUser(userId, {
+      category: categoryId,
+      month: date.toISOString().slice(0, 7),
+      sort: 'newest',
+    });
+
+    if (!budget) return;
+
+    const spent = await this.spentForBudget(userId, budget);
+    const { status } = buildOverview(budget, spent);
+
+    if (status === 'normal') return;
+
+    const category = await categoryRepository.findByIdForUser(categoryId, userId);
+
+    if (!category) return;
+
+    await notificationService.createBudgetAlert(
+      userId,
+      String(budget._id),
+      status === 'exceeded' ? 100 : 90,
+      category.name
+    );
   }
 
   async create(

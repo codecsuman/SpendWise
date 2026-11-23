@@ -1,19 +1,16 @@
 // ============================================================================
 // NoteToolbar.tsx — the small action strip above the note editor.
 //
-// It handles pin, archive, color, folder, delete and the auto-save status.
+// It handles note organization and returning to the list.
 // The editor owns the values and passes them down.
 // ============================================================================
 
 import {
   Archive,
   ArchiveRestore,
-  Check,
   ChevronLeft,
-  Loader2,
   Pin,
   PinOff,
-  Trash2,
 } from 'lucide-react'
 
 import {
@@ -23,21 +20,16 @@ import {
   type NoteColor,
 } from '../types/workspace.types'
 
-export type SaveState = 'idle' | 'saving' | 'saved' | 'error'
-
 interface NoteToolbarProps {
   pinned: boolean
   archived: boolean
   color: NoteColor
   folder: string
   folders: string[]
-  saveState: SaveState
-  isDeleting?: boolean
   onTogglePin: () => void
-  onToggleArchive: () => void
+  onToggleArchive?: () => void
   onColorChange: (color: NoteColor) => void
   onFolderChange: (folder: string) => void
-  onDelete: () => void
   onClose: () => void
 }
 
@@ -50,13 +42,10 @@ export default function NoteToolbar({
   color,
   folder,
   folders,
-  saveState,
-  isDeleting = false,
   onTogglePin,
   onToggleArchive,
   onColorChange,
   onFolderChange,
-  onDelete,
   onClose,
 }: NoteToolbarProps) {
   return (
@@ -65,7 +54,7 @@ export default function NoteToolbar({
         <button
           type="button"
           onClick={onClose}
-          className={`${iconButton} lg:hidden`}
+          className={iconButton}
           aria-label="Back to notes"
         >
           <ChevronLeft className="size-4" />
@@ -85,52 +74,21 @@ export default function NoteToolbar({
           )}
         </button>
 
-        <button
-          type="button"
-          onClick={onToggleArchive}
-          className={iconButton}
-          aria-label={archived ? 'Restore note' : 'Archive note'}
-          title={archived ? 'Restore note' : 'Archive note'}
-        >
-          {archived ? (
-            <ArchiveRestore className="size-4" />
-          ) : (
-            <Archive className="size-4" />
-          )}
-        </button>
-
-        <span
-          className="ml-auto flex items-center gap-1 text-[11px] text-muted-foreground"
-          aria-live="polite"
-        >
-          {saveState === 'saving' && (
-            <>
-              <Loader2 className="size-3 animate-spin" />
-              Saving…
-            </>
-          )}
-          {saveState === 'saved' && (
-            <>
-              <Check className="size-3 text-income" />
-              Saved
-            </>
-          )}
-          {saveState === 'error' && (
-            <span className="text-destructive">Not saved</span>
-          )}
-          {saveState === 'idle' && 'Auto-save on'}
-        </span>
-
-        <button
-          type="button"
-          onClick={onDelete}
-          disabled={isDeleting}
-          className={`${iconButton} hover:bg-destructive/10 hover:text-destructive disabled:opacity-50`}
-          aria-label="Delete note"
-          title="Delete note"
-        >
-          <Trash2 className="size-4" />
-        </button>
+        {onToggleArchive && (
+          <button
+            type="button"
+            onClick={onToggleArchive}
+            className={iconButton}
+            aria-label={archived ? 'Restore note' : 'Archive note'}
+            title={archived ? 'Restore note' : 'Archive note'}
+          >
+            {archived ? (
+              <ArchiveRestore className="size-4" />
+            ) : (
+              <Archive className="size-4" />
+            )}
+          </button>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

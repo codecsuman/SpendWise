@@ -1,121 +1,157 @@
 // ============================================================================
 // NoteEditor.tsx — the right-hand writing panel.
 //
-// There is no Save button. Every change waits 800 ms, then sends a PATCH.
-// Switching notes before the timer fires cancels the pending save.
+// New notes stay local until saved. Existing notes update on demand.
 // ============================================================================
 
-import { X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { Trash2, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import {
   getApiErrorMessage,
+  useCreateNoteMutation,
   useDeleteNoteMutation,
   useUpdateNoteMutation,
 } from '../services/workspaceApi'
 import {
   NOTE_COLOR_CLASSES,
   type Note,
-  type NoteColor,
   type NoteLink,
 } from '../types/workspace.types'
 import LinkedNotes from './LinkedNotes'
-import NoteToolbar, { type SaveState } from './NoteToolbar'
+import NoteToolbar from './NoteToolbar'
 
 interface NoteEditorProps {
-  note: Note
+  note?: Note
   folders: string[]
   onClose: () => void
+  onCreated: (note: Note) => void
   onDeleted: () => void
+  onStateChange: (dirty: boolean, busy: boolean) => void
+}
+
+function noteFields(note?: Note) {
+  return {
+    title: note?.title ?? '',
+    content: note?.content ?? '',
+    tags: note?.tags ?? [],
+    folder: note?.folder ?? '',
+    color: note?.color ?? 'teal',
+    archived: note?.archived ?? false,
+    links: note?.links ?? [],
+  } as const
 }
 
 export default function NoteEditor({
   note,
   folders,
   onClose,
+  onCreated,
   onDeleted,
+  onStateChange,
 }: NoteEditorProps) {
-  const [title, setTitle] = useState(note.title)
-  const [content, setContent] = useState(note.content)
-  const [tags, setTags] = useState<string[]>(note.tags)
+  const [savedFields, setSavedFields] = useState(() => noteFields(note))
+  const [fields, setFields] = useState(savedFields)
+  const { title, content, tags, folder, color, links } = fields
+  const [pendingPin, setPendingPin] = useState<boolean | null>(null)
+  const savedPin = note?.pinned ?? false
+  const pinned = pendingPin ?? savedPin
+  const archived = fields.archived
   const [tagInput, setTagInput] = useState('')
-  const [folder, setFolder] = useState(note.folder ?? '')
-  const [color, setColor] = useState<NoteColor>(note.color)
-  const [pinned, setPinned] = useState(note.pinned)
-  const [archived, setArchived] = useState(note.archived)
-  const [links, setLinks] = useState<NoteLink[]>(note.links)
-  const [saveState, setSaveState] = useState<SaveState>('idle')
+  const [didSave, setDidSave] = useState(false)
   const [error, setError] = useState('')
 
-  const [updateNote] = useUpdateNoteMutation()
+  const [createNote, { isLoading: isCreating }] = useCreateNoteMutation()
+  const [updateNote, { isLoading: isUpdating }] = useUpdateNoteMutation()
   const [deleteNote, { isLoading: isDeleting }] = useDeleteNoteMutation()
-
-  // The first effect run happens right after mount. Saving there would send
-  // an unnecessary PATCH every time the user opens a note.
-  const firstRender = useRef(true)
+  const isSaving = isCreating || isUpdating
+  const busy = isSaving || isDeleting
+  const dirty =
+    JSON.stringify(fields) !== JSON.stringify(savedFields) ||
+    pinned !== savedPin ||
+    Boolean(tagInput.trim())
+  const canSave = note ? dirty : Boolean(title.trim() || content.trim())
 
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false
-      return
-    }
+    onStateChange(dirty, busy)
+    return () => onStateChange(false, false)
+  }, [busy, dirty, onStateChange])
 
-    const timer = window.setTimeout(async () => {
-      setSaveState('saving')
-      setError('')
+  useEffect(() => {
+    if (!dirty) return
+    const warnOnExit = (event: BeforeUnloadEvent) => event.preventDefault()
+    window.addEventListener('beforeunload', warnOnExit)
+    return () => window.removeEventListener('beforeunload', warnOnExit)
+  }, [dirty])
 
-      try {
-        await updateNote({
-          id: note._id,
-          data: {
-            title,
-            content,
-            tags,
-            folder: folder.trim() || null,
-            color,
-            pinned,
-            archived,
-            links,
-          },
-        }).unwrap()
+  const setField = <Key extends keyof typeof fields>(key: Key, value: (typeof fields)[Key]) => {
+    setFields((current) => ({ ...current, [key]: value }))
+  }
 
-        setSaveState('saved')
-      } catch (err) {
-        setSaveState('error')
-        setError(getApiErrorMessage(err))
-      }
-    }, 800)
-
-    return () => window.clearTimeout(timer)
-  }, [
-    title,
-    content,
-    tags,
-    folder,
-    color,
-    pinned,
-    archived,
-    links,
-    note._id,
-    updateNote,
-  ])
-
-  const addTag = () => {
+  const tagsWithInput = () => {
     const value = tagInput.trim().replace(/^#/, '').slice(0, 24)
 
-    if (!value) return
+    if (!value || tags.includes(value)) return tags
 
     if (tags.length >= 10) {
       setError('A note can have at most 10 tags')
       return
     }
 
-    if (!tags.includes(value)) setTags([...tags, value])
+    return [...tags, value]
+  }
 
+  const addTag = () => {
+    const nextTags = tagsWithInput()
+    if (!nextTags) return
+    setField('tags', nextTags)
     setTagInput('')
   }
 
+  const handleSave = async () => {
+    if (busy || !canSave) return
+    setError('')
+
+    const nextTags = tagsWithInput()
+    if (!nextTags) return
+
+    const data = {
+      title: title.trim(),
+      content,
+      tags: nextTags,
+      folder: folder.trim() || null,
+      color,
+      links,
+    }
+
+    try {
+      if (!note) {
+        const result = await createNote({ ...data, pinned }).unwrap()
+        onCreated(result.note)
+        return
+      }
+
+      const result = await updateNote({
+        id: note._id,
+        data: {
+          ...data,
+          ...(pinned !== savedPin ? { pinned } : {}),
+          ...(archived !== savedFields.archived ? { archived } : {}),
+        },
+      }).unwrap()
+      const nextFields = noteFields(result.note)
+      setSavedFields(nextFields)
+      setFields(nextFields)
+      setPendingPin(null)
+      setTagInput('')
+      setDidSave(true)
+    } catch (err) {
+      setError(getApiErrorMessage(err))
+    }
+  }
+
   const handleDelete = async () => {
+    if (!note || busy) return
     if (!window.confirm(`Delete "${note.title || 'Untitled note'}"?`)) return
 
     setError('')
@@ -129,28 +165,27 @@ export default function NoteEditor({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col surface-card overflow-hidden">
-      <NoteToolbar
-        pinned={pinned}
-        archived={archived}
-        color={color}
-        folder={folder}
-        folders={folders}
-        saveState={saveState}
-        isDeleting={isDeleting}
-        onTogglePin={() => setPinned((value) => !value)}
-        onToggleArchive={() => setArchived((value) => !value)}
-        onColorChange={setColor}
-        onFolderChange={setFolder}
-        onDelete={handleDelete}
-        onClose={onClose}
-      />
+    <div className="flex h-full min-h-0 flex-col surface-card overflow-hidden" aria-busy={busy}>
+      <div inert={busy}>
+        <NoteToolbar
+          pinned={pinned}
+          archived={archived}
+          color={color}
+          folder={folder}
+          folders={folders}
+          onTogglePin={() => setPendingPin(pinned === savedPin ? !savedPin : null)}
+          onToggleArchive={note ? () => setField('archived', !archived) : undefined}
+          onColorChange={(value) => setField('color', value)}
+          onFolderChange={(value) => setField('folder', value)}
+          onClose={onClose}
+        />
+      </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
+      <div inert={busy} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
         <input
           type="text"
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
+          onChange={(event) => setField('title', event.target.value)}
           placeholder="Untitled note"
           maxLength={120}
           aria-label="Note title"
@@ -167,7 +202,7 @@ export default function NoteEditor({
               {tag}
               <button
                 type="button"
-                onClick={() => setTags(tags.filter((item) => item !== tag))}
+                onClick={() => setField('tags', tags.filter((item) => item !== tag))}
                 aria-label={`Remove tag ${tag}`}
                 className="rounded-full p-0.5 transition hover:bg-foreground/10"
               >
@@ -191,7 +226,7 @@ export default function NoteEditor({
                 tagInput === '' &&
                 tags.length > 0
               ) {
-                setTags(tags.slice(0, -1))
+                setField('tags', tags.slice(0, -1))
               }
             }}
             onBlur={addTag}
@@ -207,25 +242,38 @@ export default function NoteEditor({
 
         <textarea
           value={content}
-          onChange={(event) => setContent(event.target.value)}
+          onChange={(event) => setField('content', event.target.value)}
           placeholder="Start writing…"
           maxLength={50_000}
           aria-label="Note content"
           className="min-h-64 flex-1 resize-none rounded-xl border border-border bg-background p-4 text-sm leading-relaxed outline-none focus:ring-2 focus:ring-ring/50"
         />
 
-        {error && (
-          <p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
-            {error}
-          </p>
-        )}
-
-        <LinkedNotes links={links} onChange={setLinks} />
-
-        <p className="text-[10px] text-muted-foreground">
-          Auto-saves 800 ms after you stop typing. Plain text only for now.
-        </p>
+        <LinkedNotes links={links} onChange={(value: NoteLink[]) => setField('links', value)} />
       </div>
+
+      <footer className="space-y-2 border-t border-border p-3">
+        {error && <p role="alert" className="form-error">{error}</p>}
+        <div className="flex flex-wrap items-center gap-2">
+          <span role="status" className="mr-auto text-xs text-muted-foreground">
+            {isSaving ? 'Saving…' : dirty ? 'Unsaved changes' : didSave ? 'Updated' : ''}
+          </span>
+          {note && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={busy}
+              className="button-secondary gap-2 text-destructive disabled:opacity-50"
+            >
+              <Trash2 className="size-4" aria-hidden="true" />
+              {isDeleting ? 'Deleting…' : 'Delete'}
+            </button>
+          )}
+          <button type="button" onClick={handleSave} disabled={busy || !canSave} className="button-primary">
+            {note ? 'Update' : 'Save'}
+          </button>
+        </div>
+      </footer>
     </div>
   )
 }

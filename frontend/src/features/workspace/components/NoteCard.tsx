@@ -60,7 +60,7 @@ export default function NoteCard({
       className={`group relative overflow-hidden rounded-2xl border bg-card shadow-sm transition ${
         selected
           ? 'border-p1 ring-2 ring-p1/25'
-          : 'border-border hover:-translate-y-0.5 hover:shadow-md'
+          : 'border-border hover:shadow-md'
       }`}
     >
       {/* Color label across the top */}

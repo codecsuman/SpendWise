@@ -265,10 +265,10 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={busy}
-            className="mt-2 button-primary h-10"
+            className="relative mt-2 button-primary h-10"
           >
-            {busy && <Loader2 className="size-4 animate-spin" />}
-            {busy ? 'Creating account…' : 'Create account'}
+            {busy && <Loader2 className="absolute inset-0 m-auto size-4 animate-spin" aria-hidden="true" />}
+            <span className={busy ? 'opacity-0' : undefined}>Create account</span>
           </button>
         </form>
 

@@ -72,5 +72,7 @@ const goalSchema = new Schema<IGoal>(
 
 // "Show this user's goals, soonest target date first."
 goalSchema.index({ user: 1, status: 1, targetDate: 1 });
+// The reminder scheduler scans upcoming deadlines across users.
+goalSchema.index({ status: 1, targetDate: 1 });
 
 export const Goal = mongoose.model<IGoal>('Goal', goalSchema);

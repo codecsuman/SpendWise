@@ -13,11 +13,13 @@
 
 import mongoose, { Types } from 'mongoose';
 
+import { logger } from '../config/logger.js';
 import {
   TransactionRepository,
   type TransactionListResult,
 } from '../repositories/transaction.repository.js';
 import { AppError } from '../utils/AppError.js';
+import { budgetService } from './budget.service.js';
 import type { ITransaction } from '../models/Transaction.model.js';
 import type {
   CreateTransactionInput,
@@ -28,6 +30,26 @@ import type {
 const transactionRepository = new TransactionRepository();
 
 export class TransactionService {
+  private async checkBudgetAlert(
+    userId: string,
+    transaction: ITransaction
+  ): Promise<void> {
+    if (transaction.type !== 'expense') return;
+
+    try {
+      await budgetService.checkSpendingAlert(
+        userId,
+        String(transaction.category),
+        transaction.date
+      );
+    } catch (error) {
+      logger.warn(
+        { err: error, transactionId: String(transaction._id) },
+        'Failed to check budget alert'
+      );
+    }
+  }
+
   // The route validator already checks :id. This is the second layer:
   // never let an invalid id reach Mongoose, even if a route forgets the schema.
   private assertValidId(id: string): void {
@@ -42,7 +64,7 @@ export class TransactionService {
   ): Promise<ITransaction> {
     // Category existence/ownership is checked in Phase 5, once the Category
     // model exists. For now only the ObjectId format is validated.
-    return transactionRepository.create(userId, {
+    const transaction = await transactionRepository.create(userId, {
       type: input.type,
       amount: input.amount,
       currency: input.currency,
@@ -50,6 +72,9 @@ export class TransactionService {
       description: input.description,
       date: input.date,
     });
+
+    await this.checkBudgetAlert(userId, transaction);
+    return transaction;
   }
 
   async list(
@@ -105,6 +130,7 @@ export class TransactionService {
       throw new AppError('Transaction not found', 404);
     }
 
+    await this.checkBudgetAlert(userId, transaction);
     return transaction;
   }
 

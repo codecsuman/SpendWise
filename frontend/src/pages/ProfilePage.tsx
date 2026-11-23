@@ -232,11 +232,13 @@ function ProfileForm() {
       <button
         type="submit"
         disabled={busy}
-        className="mt-2 button-primary button-save h-10 w-fit px-4"
+        className="relative mt-2 button-primary button-save h-10 w-fit px-4"
       >
-        {busy && <Loader2 className="size-4 animate-spin" />}
-        {!busy && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
-        {busy ? 'Saving…' : 'Save changes'}
+        {busy && <Loader2 className="absolute inset-0 m-auto size-4 animate-spin" aria-hidden="true" />}
+        <span className={`inline-flex items-center gap-2${busy ? ' opacity-0' : ''}`}>
+          <Bookmark className="size-4 fill-current" aria-hidden="true" />
+          Save changes
+        </span>
       </button>
     </form>
   )
@@ -385,10 +387,10 @@ function PasswordForm() {
       <button
         type="submit"
         disabled={busy}
-        className="mt-2 button-primary h-10 w-fit px-4"
+        className="relative mt-2 button-primary h-10 w-fit px-4"
       >
-        {busy && <Loader2 className="size-4 animate-spin" />}
-        {busy ? 'Updating…' : 'Update password'}
+        {busy && <Loader2 className="absolute inset-0 m-auto size-4 animate-spin" aria-hidden="true" />}
+        <span className={busy ? 'opacity-0' : undefined}>Update password</span>
       </button>
     </form>
   )
@@ -446,8 +448,9 @@ export default function ProfilePage() {
             />
             <span className="text-muted-foreground">JPEG, PNG, WebP, or HEIC/HEIF up to 5 MB.</span>
           </label>
-          <button type="submit" disabled={isLoading || !user} className="button-primary h-9">
-            {isLoading ? 'Uploading…' : 'Upload photo'}
+          <button type="submit" disabled={isLoading || !user} className="relative button-primary h-9">
+            {isLoading && <Loader2 className="absolute inset-0 m-auto size-4 animate-spin" aria-hidden="true" />}
+            <span className={isLoading ? 'opacity-0' : undefined}>Upload photo</span>
           </button>
           {error && <p role="alert" className="form-error">{getErrorMessage(error)}</p>}
           {isSuccess && <p role="status" className="text-sm">Profile photo updated.</p>}

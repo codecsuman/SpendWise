@@ -24,7 +24,6 @@ import WorkspaceSidebar from '../features/workspace/components/WorkspaceSidebar'
 import { useDebouncedValue } from '../features/workspace/hooks/useWorkspace'
 import {
   getApiErrorMessage,
-  useCreateNoteMutation,
   useGetNoteQuery,
   useListNotesQuery,
   useUpdateNoteMutation,
@@ -55,10 +54,13 @@ export default function WorkspacePage() {
   const [actionError, setActionError] = useState('')
 
   const searchRef = useRef<HTMLInputElement>(null)
+  const editorState = useRef({ dirty: false, busy: false })
 
   // The URL is the source of truth for the open note, so a deep link works
   // and the browser Back button returns to the list.
-  const selectedId = noteId ?? null
+  const isDraft = noteId === 'new'
+  const selectedId = isDraft ? null : noteId ?? null
+  const editorOpen = Boolean(noteId)
 
   const listQuery = useMemo<NoteListQuery>(
     () => ({
@@ -81,12 +83,11 @@ export default function WorkspacePage() {
   } = useListNotesQuery(listQuery)
 
   const {
-    data: selectedData,
-    isLoading: isNoteLoading,
+    currentData: selectedData,
+    isFetching: isNoteFetching,
     error: noteError,
   } = useGetNoteQuery(selectedId ?? '', { skip: !selectedId })
 
-  const [createNote, { isLoading: isCreating }] = useCreateNoteMutation()
   const [updateNote] = useUpdateNoteMutation()
 
   const notes = useMemo(() => listData?.notes ?? [], [listData])
@@ -113,28 +114,27 @@ export default function WorkspacePage() {
     [notes]
   )
 
+  const canLeaveEditor = useCallback(() => {
+    const { dirty, busy } = editorState.current
+    return !busy && (!dirty || window.confirm('Discard unsaved changes?'))
+  }, [])
+
+  const onEditorStateChange = useCallback((dirty: boolean, busy: boolean) => {
+    editorState.current = { dirty, busy }
+  }, [])
+
   const openNote = useCallback(
     (note: Note) => {
-      navigate(`/workspace/${note._id}`)
+      if (note._id !== selectedId && canLeaveEditor()) {
+        navigate(`/workspace/${note._id}`)
+      }
     },
-    [navigate]
+    [canLeaveEditor, navigate, selectedId]
   )
 
-  const handleNew = useCallback(async () => {
-    setActionError('')
-
-    try {
-      const result = await createNote({
-        title: '',
-        content: '',
-        color: 'teal',
-      }).unwrap()
-
-      navigate(`/workspace/${result.note._id}`)
-    } catch (err) {
-      setActionError(getApiErrorMessage(err))
-    }
-  }, [createNote, navigate])
+  const handleNew = useCallback(() => {
+    if (!isDraft && canLeaveEditor()) navigate('/workspace/new')
+  }, [canLeaveEditor, isDraft, navigate])
 
   const handleTogglePin = async (note: Note) => {
     setActionError('')
@@ -180,7 +180,7 @@ export default function WorkspacePage() {
         !event.altKey
       ) {
         event.preventDefault()
-        void handleNew()
+        handleNew()
       }
 
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
@@ -198,9 +198,10 @@ export default function WorkspacePage() {
       <WorkspaceHeader
         noteCount={total}
         isFetching={isFetching}
-        isCreating={isCreating}
-        onNew={() => void handleNew()}
-        onQuickNote={() => setQuickOpen(true)}
+        onNew={handleNew}
+        onQuickNote={() => {
+          if (canLeaveEditor()) setQuickOpen(true)
+        }}
         onCalculator={() => setCalcOpen(true)}
         onOpenFilters={() => setSidebarOpen(true)}
       />
@@ -217,7 +218,7 @@ export default function WorkspacePage() {
         </p>
       )}
 
-      <div className="grid min-h-0 gap-4 lg:h-[calc(100vh-12rem)] lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[220px_300px_minmax(0,1fr)]">
+      <div className="grid min-h-0 gap-4 lg:h-[calc(100dvh-12rem)] lg:grid-cols-[300px_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] xl:grid-cols-[220px_300px_minmax(0,1fr)]">
         {/* Mobile backdrop for the filter drawer */}
         {sidebarOpen && (
           <div
@@ -257,7 +258,7 @@ export default function WorkspacePage() {
         {/* Notes list */}
         <section
           className={`${
-            selectedId ? 'hidden lg:flex' : 'flex'
+            editorOpen ? 'hidden lg:flex' : 'flex'
           } min-h-0 flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm`}
         >
           <NoteSearch
@@ -287,26 +288,30 @@ export default function WorkspacePage() {
             isFetching={isFetching}
             onSelect={openNote}
             onTogglePin={(note) => void handleTogglePin(note)}
-            onNew={() => void handleNew()}
+            onNew={handleNew}
           />
         </section>
 
         {/* Editor */}
         <section
           className={`${
-            selectedId ? 'flex' : 'hidden lg:flex'
+            editorOpen ? 'flex' : 'hidden lg:flex'
           } min-h-0 flex-col`}
         >
-          {isNoteLoading ? (
-            <div className="skeleton h-full min-h-80" />
-          ) : selectedNote ? (
+          {isDraft || selectedNote ? (
             <NoteEditor
-              key={selectedNote._id}
+              key={noteId}
               note={selectedNote}
               folders={folders}
-              onClose={closeEditor}
+              onClose={() => {
+                if (canLeaveEditor()) closeEditor()
+              }}
+              onCreated={(note) => navigate(`/workspace/${note._id}`, { replace: true })}
               onDeleted={closeEditor}
+              onStateChange={onEditorStateChange}
             />
+          ) : selectedId && isNoteFetching ? (
+            <div className="skeleton h-full min-h-80" />
           ) : selectedId && noteError ? (
             <div className="flex h-full min-h-80 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-card/60 p-8 text-center">
               <p className="text-sm font-semibold">This note could not load</p>
@@ -322,20 +327,14 @@ export default function WorkspacePage() {
               <div className="grid size-14 place-items-center rounded-2xl bg-p1/10 text-p1">
                 <StickyNote className="size-7" />
               </div>
-              <div>
-                <p className="text-sm font-semibold">Select a note</p>
-                <p className="mt-1 max-w-64 text-xs leading-relaxed text-muted-foreground">
-                  Pick a card from the list, or write a quick note without
-                  leaving the page.
-                </p>
-              </div>
+              <p className="text-sm font-semibold">Select a note</p>
               <button
                 type="button"
-                onClick={() => setQuickOpen(true)}
+                onClick={handleNew}
                 className="button-primary"
               >
                 <Plus className="mr-1 inline size-4" />
-                Quick note
+                New note
               </button>
             </div>
           )}
@@ -347,7 +346,7 @@ export default function WorkspacePage() {
         onClose={() => setQuickOpen(false)}
         onCreated={(note) => {
           setQuickOpen(false)
-          openNote(note)
+          navigate(`/workspace/${note._id}`)
         }}
       />
 

@@ -1,4 +1,5 @@
 import { useId, useState, type FormEvent } from 'react';
+import { Loader2 } from 'lucide-react';
 import { usePreviewCsvMutation } from '../services/csvApi';
 import CsvImportForm from './CsvImportForm';
 
@@ -40,10 +41,11 @@ export default function CsvPreview() {
 
         <button
           type="submit"
-          className="button-primary h-9"
+          className="button-primary relative h-9"
           disabled={!file || isLoading}
         >
-          {isLoading ? 'Loading preview…' : 'Preview'}
+          {isLoading && <Loader2 className="absolute inset-0 m-auto size-4 animate-spin" aria-hidden="true" />}
+          <span className={isLoading ? 'opacity-0' : undefined}>Preview</span>
         </button>
       </form>
 

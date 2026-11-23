@@ -16,6 +16,7 @@
 
 import { Types } from 'mongoose';
 
+import { logger } from '../config/logger.js';
 import { CategoryRepository } from '../repositories/category.repository.js';
 import {
   TransactionRepository,
@@ -26,6 +27,7 @@ import { normaliseHeader, parseCsv, type CsvRow } from '../utils/csvParser.js';
 import { createTransactionSchema } from '../validators/transaction.validator.js';
 import type { ImportCsvInput } from '../validators/csv.validator.js';
 import type { TransactionType } from '../models/Transaction.model.js';
+import { budgetService } from './budget.service.js';
 
 const PREVIEW_ROWS = 10;
 
@@ -463,6 +465,8 @@ export class CsvService {
       );
     }
 
+    await this.checkImportedBudgetAlerts(userId, rowsToInsert);
+
     return {
       imported,
       skipped,
@@ -470,6 +474,33 @@ export class CsvService {
       errors,
       errorsTruncated: failed > errors.length,
     };
+  }
+
+  private async checkImportedBudgetAlerts(
+    userId: string,
+    rows: Candidate['data'][]
+  ): Promise<void> {
+    const checked = new Set<string>();
+
+    for (const row of rows) {
+      if (row.type !== 'expense') continue;
+
+      const categoryId = String(row.category);
+      const month = row.date.toISOString().slice(0, 7);
+      const key = `${categoryId}:${month}`;
+
+      if (checked.has(key)) continue;
+      checked.add(key);
+
+      try {
+        await budgetService.checkSpendingAlert(userId, categoryId, row.date);
+      } catch (error) {
+        logger.warn(
+          { err: error, categoryId, month },
+          'Failed to check budget alert after CSV import'
+        );
+      }
+    }
   }
 
   private async loadCategoryIndex(

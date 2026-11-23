@@ -2,6 +2,7 @@ import { connectDB } from './config/database.js'
 import { env } from './config/env.js'
 import { logger } from './config/logger.js'
 import app from './app.js'
+import { startGoalReminderScheduler } from './queues/notification.queue.js'
 import { startRecurringScheduler } from './queues/recurringTransaction.queue.js'
 
 async function startServer(): Promise<void> {
@@ -11,6 +12,7 @@ async function startServer(): Promise<void> {
   // Turns due recurring rules into real transactions. Needs the database, so
   // it starts after connectDB and before the HTTP port opens.
   startRecurringScheduler()
+  startGoalReminderScheduler()
 
   // Start HTTP server
   app.listen(env.PORT, () => {

@@ -1,5 +1,5 @@
 import CustomSelect from '../../../components/ui/CustomSelect'
-import { Bookmark } from 'lucide-react'
+import { Bookmark, Loader2 } from 'lucide-react'
 // ============================================================================
 // RecurringForm.tsx — create / edit one recurring rule.
 //
@@ -375,9 +375,12 @@ export default function RecurringForm({ rule, onDone }: RecurringFormProps) {
       </div>
 
       <div className="flex gap-2">
-        <button type="submit" disabled={busy} className={rule ? "button-primary button-save" : "button-primary"}>
-          {rule && !busy && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
-          {busy ? 'Saving…' : rule ? 'Save changes' : 'Create rule'}
+        <button type="submit" disabled={busy} className={rule ? "button-primary button-save relative" : "button-primary relative"}>
+          {busy && <Loader2 className="absolute inset-0 m-auto size-4 animate-spin" aria-hidden="true" />}
+          <span className={`inline-flex items-center gap-2${busy ? ' opacity-0' : ''}`}>
+            {rule && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
+            {rule ? 'Save changes' : 'Create rule'}
+          </span>
         </button>
         <button
           type="button"

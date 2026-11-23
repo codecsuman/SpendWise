@@ -5,7 +5,7 @@
 // ============================================================================
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Bookmark, X } from 'lucide-react'
+import { Bookmark, Loader2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -163,9 +163,12 @@ export default function QuickNoteDialog({
               >
                 Cancel
               </button>
-              <button type="submit" disabled={busy} className="button-primary button-save">
-                {!busy && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
-                {busy ? 'Saving…' : 'Save note'}
+              <button type="submit" disabled={busy} className="button-primary button-save relative">
+                {busy && <Loader2 className="absolute inset-0 m-auto size-4 animate-spin" aria-hidden="true" />}
+                <span className={`inline-flex items-center gap-2${busy ? ' opacity-0' : ''}`}>
+                  <Bookmark className="size-4 fill-current" aria-hidden="true" />
+                  Save note
+                </span>
               </button>
             </div>
           </div>

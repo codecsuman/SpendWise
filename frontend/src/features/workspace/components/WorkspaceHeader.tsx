@@ -14,7 +14,6 @@ import {
 interface WorkspaceHeaderProps {
   noteCount: number
   isFetching: boolean
-  isCreating: boolean
   onNew: () => void
   onQuickNote: () => void
   onCalculator: () => void
@@ -27,7 +26,6 @@ const secondaryButton =
 export default function WorkspaceHeader({
   noteCount,
   isFetching,
-  isCreating,
   onNew,
   onQuickNote,
   onCalculator,
@@ -70,17 +68,18 @@ export default function WorkspaceHeader({
         <button
           type="button"
           onClick={onNew}
-          disabled={isCreating}
           className="button-primary"
         >
-          <Plus className="mr-1 inline size-4" />
-          {isCreating ? 'Creating…' : 'New note'}
+          <span className="inline-flex items-center gap-2">
+            <Plus className="mr-1 inline size-4" />
+            New note
+          </span>
         </button>
       </div>
 
       {/* Screen-reader hint for the two global shortcuts. */}
       <p className="sr-only">
-        Press N for a new quick note and Control K to search your notes.
+        Press N for a new note and Control K to search your notes.
       </p>
     </header>
   )

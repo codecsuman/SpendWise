@@ -58,7 +58,12 @@ export default function NotesGrid({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1">
+    <div
+      role="region"
+      aria-label="Notes list"
+      tabIndex={0}
+      className="flex min-h-0 max-h-[55dvh] flex-1 flex-col gap-3 overflow-y-scroll overscroll-y-contain pr-2 [scrollbar-gutter:stable] focus-visible:outline focus-visible:outline-ring [&>*]:shrink-0 lg:max-h-none"
+    >
       {isFetching && (
         <div className="flex items-center gap-2 px-1 text-[11px] text-muted-foreground">
           <Loader2 className="size-3 animate-spin" />

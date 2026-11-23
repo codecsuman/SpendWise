@@ -185,7 +185,7 @@ export default function WorkspaceSidebar({
       </section>
 
       <p className="mt-auto text-[11px] leading-relaxed text-muted-foreground">
-        Tip: press <kbd className="font-semibold">N</kbd> for a quick note and{' '}
+        Tip: press <kbd className="font-semibold">N</kbd> for a new note and{' '}
         <kbd className="font-semibold">Ctrl K</kbd> to search.
       </p>
     </aside>

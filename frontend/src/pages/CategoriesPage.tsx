@@ -243,11 +243,13 @@ function CategoryForm({ category, onDone }: CategoryFormProps) {
         <button
           type="submit"
           disabled={busy || category?.isDefault}
-          className={category ? "button-primary button-save h-9 px-4" : "button-primary h-9 px-4"}
+          className={category ? "button-primary button-save relative h-9 px-4" : "button-primary relative h-9 px-4"}
         >
-          {busy && <Loader2 className="size-4 animate-spin" />}
-          {category && !busy && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
-          {category ? 'Save changes' : 'Create category'}
+          {busy && <Loader2 className="absolute inset-0 m-auto size-4 animate-spin" aria-hidden="true" />}
+          <span className={`inline-flex items-center gap-2${busy ? ' opacity-0' : ''}`}>
+            {category && <Bookmark className="size-4 fill-current" aria-hidden="true" />}
+            {category ? 'Save changes' : 'Create category'}
+          </span>
         </button>
         <button
           type="button"

@@ -15,6 +15,7 @@ import categoryRouter from './routes/category.routes.js'
 import budgetRouter from './routes/budget.routes.js'
 import analyticsRouter from './routes/analytics.routes.js'
 import goalRouter from './routes/goal.routes.js'
+import notificationRouter from './routes/notification.routes.js';
 import workspaceRouter from './routes/workspace.routes.js'
 import recurringRouter from './routes/recurring.routes.js'
 const app = express();
@@ -61,6 +62,7 @@ app.use('/api/budgets', budgetRouter);
 app.use('/api/analytics', analyticsRouter);
 
 app.use('/api/goals', goalRouter);
+app.use('/api/notifications', notificationRouter);
 
 app.use('/api/workspace', workspaceRouter);
 

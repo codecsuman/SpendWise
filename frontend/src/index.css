@@ -260,6 +260,7 @@
   html {
     @apply font-sans;
     scroll-behavior: smooth;
+    scrollbar-gutter: stable;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
@@ -546,10 +547,9 @@
   cursor: pointer;
   background: var(--p-soft);
   color: var(--p1-dark);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, color 0.25s ease;
+  transition: background 0.25s ease, color 0.25s ease;
 }
-.btn-icon:hover  { transform: scale(1.15) rotate(8deg); background: var(--p1); color: var(--on-p1); }
-.btn-icon:active { transform: scale(0.9); }
+.btn-icon:hover  { background: var(--p1); color: var(--on-p1); }
 
 /* =====================================================================
    11. PROGRESS: bar, ring, bars for charts
@@ -623,9 +623,9 @@
   background: linear-gradient(180deg, var(--bar-top, var(--p1)), var(--bar-bottom, var(--p2)));
   transform-origin: bottom;
   animation: barGrow 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  transition: filter 0.2s ease, transform 0.2s ease;
+  transition: filter 0.2s ease;
 }
-.bar-grow:hover { filter: brightness(1.15); transform: scaleY(1.03); }
+.bar-grow:hover { filter: brightness(1.15); }
 .bar-grow:nth-child(2) { --bar-top: var(--p2); --bar-bottom: var(--p5); animation-delay: 0.1s; }
 .bar-grow:nth-child(3) { --bar-top: var(--p3); --bar-bottom: var(--p1); animation-delay: 0.2s; }
 .bar-grow:nth-child(4) { --bar-top: var(--p4); --bar-bottom: var(--p2); animation-delay: 0.3s; }
@@ -669,9 +669,9 @@
   color: var(--chip-text, var(--p1-dark));
   background: color-mix(in srgb, var(--chip, var(--p1)) 16%, transparent);
   border: 1px solid color-mix(in srgb, var(--chip, var(--p1)) 40%, transparent);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease;
+  transition: background 0.25s ease;
 }
-.chip:hover { transform: translateY(-3px) scale(1.06); background: color-mix(in srgb, var(--chip, var(--p1)) 28%, transparent); }
+.chip:hover { background: color-mix(in srgb, var(--chip, var(--p1)) 28%, transparent); }
 .chip-1 { --chip: var(--p1); }
 .chip-2 { --chip: var(--p2); }
 .chip-3 { --chip: var(--p3); }
@@ -718,7 +718,7 @@
   border: 2px solid var(--border);
   background: var(--card);
   color: var(--foreground);
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 .field input:focus,
 .field textarea:focus,
@@ -726,7 +726,6 @@
   outline: none;
   border-color: var(--p2);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--p2) 22%, transparent);
-  transform: translateY(-1px);
 }
 
 /* =====================================================================
@@ -1159,6 +1158,7 @@
 
 /* Sidebar navigation */
 .nav-link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1175,6 +1175,14 @@
 .nav-link.active {
   background: var(--accent);
   color: var(--accent-foreground);
+}
+
+/* Icon rail: the sidebar is switched off, so only the icons stay. Each label
+   is pushed out to the right of the rail and fades in on hover, the way the
+   Chrome side panel does. Scoped to lg so the phone drawer is untouched. */
+@media (min-width: 64rem) {
+  .nav-rail .nav-link { justify-content: center; }
+  .nav-rail .nav-link-label { @apply sr-only; }
 }
 
 /* Floating shortcuts stay clear of the phone's home indicator. */
@@ -1220,11 +1228,7 @@
 
 .page-theme :where(button, .button-primary, .button-secondary, .form-control, .surface-card, .stat-card) {
   transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease,
-    box-shadow 180ms ease, scale 140ms ease;
-}
-
-.page-theme :where(button:enabled, a.button-primary, a.button-secondary):not([aria-disabled="true"]):active {
-  scale: 0.96;
+    box-shadow 180ms ease;
 }
 
 .page-theme button { cursor: pointer; }
@@ -1340,6 +1344,14 @@
 .tone-control button:active:enabled { box-shadow: inset 0 3px 8px rgb(15 23 42 / 30%); }
 .tone-control button:disabled { opacity: 0.45; cursor: not-allowed; }
 .tone-control input { width: 100%; min-width: 0; margin: 0 0.5rem; accent-color: var(--primary); }
+
+/* The root already reserves scrollbar space. Radix's extra margin would
+   narrow the header and forms while a select is open. Keep its scroll lock. */
+@supports (scrollbar-gutter: stable) {
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
+  }
+}
 
 .custom-select-trigger {
   display: inline-grid;

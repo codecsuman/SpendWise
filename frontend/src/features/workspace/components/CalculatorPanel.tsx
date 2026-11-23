@@ -81,7 +81,7 @@ function CalcButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className={`h-12 rounded-xl text-lg font-semibold transition active:scale-95 ${styles[variant]} ${className}`}
+      className={`h-12 rounded-xl text-lg font-semibold transition ${styles[variant]} ${className}`}
     >
       {children}
     </button>
