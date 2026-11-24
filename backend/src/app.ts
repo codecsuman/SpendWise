@@ -1,4 +1,7 @@
 import express from "express";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import cors from "cors";
 import helmet from "helmet";
 import { pinoHttp } from "pino-http";
@@ -26,7 +29,33 @@ if (env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
 }
 
-app.use(helmet());
+app.use(helmet({
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      scriptSrc: ["'self'", "https://accounts.google.com/gsi/client"],
+      frameSrc: ["'self'", "https://accounts.google.com/gsi/"],
+      connectSrc: ["'self'", "https://accounts.google.com/gsi/"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com/gsi/style"],
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.googleusercontent.com"],
+    },
+  },
+}));
+
+const frontendDir = fileURLToPath(new URL("../../frontend/dist/", import.meta.url));
+const frontendIndex = join(frontendDir, "index.html");
+if (env.NODE_ENV === "production" && existsSync(frontendIndex)) {
+  // Static files and browser navigation do not consume the API rate limit.
+  const frontendRoute = /^\/(?!api(?:\/|$)|health(?:\/|$))/i;
+  const serveStatic = express.static(frontendDir, { index: false, redirect: false });
+  app.get(frontendRoute, serveStatic, (req, res, next) => {
+    res.vary("Accept");
+    const assetRequest = req.path.includes(".") || /^\/(?:assets|media)(?:\/|$)/i.test(req.path);
+    if (assetRequest || !req.accepts("html")) return next();
+    res.sendFile(frontendIndex);
+  });
+}
 
 // Allowlist: only the frontend origin may call this API.
 // `credentials: true` is what lets the browser send/accept httpOnly cookies.

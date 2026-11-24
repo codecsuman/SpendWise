@@ -10,6 +10,7 @@ import MainLayout from './components/layout/MainLayout'
 // when the user opens it, so the first load stays small on slow devices.
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const TransactionsPage = lazy(() => import('./pages/TransactionsPage'))
 const CategoriesPage = lazy(() => import('./pages/CategoriesPage'))
@@ -59,6 +60,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         </Route>
 
         {/* Everything inside this route requires a valid session cookie.

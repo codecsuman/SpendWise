@@ -82,7 +82,7 @@ export function parseCsv(input: string): ParsedCsv {
 
   let field = '';
   let record: string[] = [];
-  let inQuotes = false;
+  let quoteStartLine: number | undefined;
   let recordLine = 1;
   let currentLine = 1;
 
@@ -119,21 +119,21 @@ export function parseCsv(input: string): ParsedCsv {
   for (let i = 0; i < text.length; i += 1) {
     const char = text[i];
 
-    if (inQuotes) {
+    if (quoteStartLine !== undefined) {
       if (char === '"') {
         // Two quotes in a row are an escaped quote, still inside the cell.
         if (text[i + 1] === '"') {
           field += '"';
           i += 1;
         } else {
-          inQuotes = false;
+          quoteStartLine = undefined;
         }
         continue;
       }
 
       // A newline inside quotes is part of the cell, but it still moves the
       // physical line counter so later errors report the right number.
-      if (char === '\n') {
+      if (char === '\n' || (char === '\r' && text[i + 1] !== '\n')) {
         currentLine += 1;
       }
 
@@ -143,7 +143,7 @@ export function parseCsv(input: string): ParsedCsv {
 
     if (char === '"') {
       if (field.length === 0) {
-        inQuotes = true;
+        quoteStartLine = currentLine;
       } else {
         // Lenient: a stray quote inside an unquoted cell is kept as text.
         field += char;
@@ -171,8 +171,8 @@ export function parseCsv(input: string): ParsedCsv {
     field += char;
   }
 
-  if (inQuotes) {
-    throw new AppError(`Unclosed quote starting on line ${recordLine}`, 400);
+  if (quoteStartLine !== undefined) {
+    throw new AppError(`Unclosed quote starting on line ${quoteStartLine}`, 400);
   }
 
   // The last row has no terminator when the file does not end with a newline.

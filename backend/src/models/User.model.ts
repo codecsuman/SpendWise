@@ -5,10 +5,12 @@ export interface IUser extends Document {
   password: string;
   name: string;
   avatarUrl?: string;
+  googleId?: string;
   currency: string;
   timezone: string;
   language: string;
   refreshToken?: string;
+  sessionVersion?: number;
   emailVerified: boolean;
   emailVerificationToken?: string;
   emailVerificationExpires?: Date;
@@ -37,6 +39,12 @@ const userSchema = new Schema<IUser>(
       trim: true,
     },
     avatarUrl: String,
+    // Google's stable user id ("sub"). Sparse: password accounts simply do
+    // not have this field, and two accounts can never share one.
+    googleId: {
+      type: String,
+      trim: true,
+    },
     currency: {
       type: String,
       enum: ['INR', 'USD', 'EUR', 'GBP', 'CAD', 'AUD'],
@@ -55,6 +63,7 @@ const userSchema = new Schema<IUser>(
       type: String,
       select: false,
     },
+    sessionVersion: { type: Number, default: 0 },
     emailVerified: {
       type: Boolean,
       default: false,
@@ -74,6 +83,7 @@ const userSchema = new Schema<IUser>(
 );
 
 userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
 userSchema.index({ emailVerificationToken: 1 });
 userSchema.index({ refreshToken: 1 });
 

@@ -21,17 +21,23 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 
 // useForm manages the values, errors and submitting state of each form.
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 
 // useNavigate moves the user in code after a successful sign-in/sign-up.
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 // z is the main object from zod, our runtime validation library.
 import { z } from 'zod'
 
+import GoogleButton from '../features/auth/components/GoogleButton'
+import SignupEmailCode from '../features/auth/components/SignupEmailCode'
+import { googleSignInEnabled } from '../features/auth/services/googleIdentity'
+
 // The RTK Query hooks. They already send cookies (credentials: 'include') and
 // invalidate the cached "User" query, so the dashboard sees the new session.
 import {
+  useAuthOptionsQuery,
+  useGoogleLoginMutation,
   useLoginMutation,
   useRegisterMutation,
 } from '../features/auth/services/authApi'
@@ -117,6 +123,10 @@ export default function LoginPage() {
   // [trigger, state] — trigger sends the request, state tells us if it is busy.
   const [login] = useLoginMutation()
   const [registerUser] = useRegisterMutation()
+  const [googleLogin, { isLoading: googlePending }] = useGoogleLoginMutation()
+  const { data: authOptions } = useAuthOptionsQuery()
+  const signupEmail = useWatch({ control: signUp.control, name: 'email' })
+  const [signupCode, setSignupCode] = useState('')
 
   // Which pane is visible. The radio inputs also control the CSS flip; this
   // state lets us mark the hidden pane as inert so its fields cannot be tabbed.
@@ -130,7 +140,18 @@ export default function LoginPage() {
   const [signUpError, setSignUpError] = useState('')
 
   // Disable both forms while either request is running.
-  const busy = signIn.formState.isSubmitting || signUp.formState.isSubmitting
+  const busy = signIn.formState.isSubmitting || signUp.formState.isSubmitting || googlePending
+
+  const onGoogleCredential = async (credential: string) => {
+    const setError = activeTab === 'signin' ? setSignInError : setSignUpError
+    setError('')
+    try {
+      await googleLogin({ credential }).unwrap()
+      navigate('/dashboard')
+    } catch (error) {
+      setError(getErrorMessage(error, 'Google sign-in failed. Please try again.'))
+    }
+  }
 
   // --- SUBMIT HANDLERS -----------------------------------------------------
   // handleSubmit only calls these functions if zod validation PASSES.
@@ -148,6 +169,10 @@ export default function LoginPage() {
 
   const onSignUp = async (values: SignUpValues) => {
     setSignUpError('')
+    if (authOptions?.emailCodes && !/^\d{6}$/.test(signupCode)) {
+      setSignUpError('Request and enter the six-digit email code.')
+      return
+    }
 
     try {
       // Send ONLY the three fields the backend accepts.
@@ -156,6 +181,7 @@ export default function LoginPage() {
         name: values.name,
         email: values.email,
         password: values.password,
+        ...(authOptions?.emailCodes ? { code: signupCode } : {}),
       }).unwrap()
 
       // The cookie is already set, so the new user is logged in.
@@ -208,7 +234,7 @@ export default function LoginPage() {
               inert={activeTab !== 'signin'}
             >
               <form onSubmit={signIn.handleSubmit(onSignIn)} noValidate>
-                {signInError && <p className="auth-error">{signInError}</p>}
+                {signInError && <p role="alert" className="auth-error">{signInError}</p>}
 
                 <div className="auth-group">
                   <label htmlFor="signin-email" className="auth-label">
@@ -287,16 +313,16 @@ export default function LoginPage() {
                   </button>
                 </div>
 
+                {googleSignInEnabled && activeTab === 'signin' && (
+                  <div className="auth-group">
+                    <p className="my-3 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">or</p>
+                    <GoogleButton disabled={busy} onCredential={onGoogleCredential} />
+                  </div>
+                )}
+
                 <div className="auth-hr"></div>
                 <div className="auth-foot">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSignInError('Password reset is not available yet.')
-                    }
-                  >
-                    Forgot Password?
-                  </button>
+                  <Link to="/forgot-password">Forgot password?</Link>
                 </div>
               </form>
             </div>
@@ -307,7 +333,7 @@ export default function LoginPage() {
               inert={activeTab !== 'signup'}
             >
               <form onSubmit={signUp.handleSubmit(onSignUp)} noValidate>
-                {signUpError && <p className="auth-error">{signUpError}</p>}
+                {signUpError && <p role="alert" className="auth-error">{signUpError}</p>}
 
                 <div className="auth-group">
                   <label htmlFor="signup-name" className="auth-label">
@@ -348,6 +374,12 @@ export default function LoginPage() {
                     </p>
                   )}
                 </div>
+
+                {authOptions?.emailCodes && (
+                  <div className="auth-group">
+                    <SignupEmailCode email={signupEmail} code={signupCode} onCodeChange={setSignupCode} disabled={busy} />
+                  </div>
+                )}
 
                 <div className="auth-group">
                   <label htmlFor="signup-password" className="auth-label">
@@ -427,6 +459,13 @@ export default function LoginPage() {
                     </span>
                   </button>
                 </div>
+
+                {googleSignInEnabled && activeTab === 'signup' && (
+                  <div className="auth-group">
+                    <p className="my-3 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">or</p>
+                    <GoogleButton disabled={busy} onCredential={onGoogleCredential} />
+                  </div>
+                )}
               </form>
             </div>
           </div>

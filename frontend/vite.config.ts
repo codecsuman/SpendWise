@@ -5,6 +5,12 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      'Referrer-Policy': 'no-referrer-when-downgrade',
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),

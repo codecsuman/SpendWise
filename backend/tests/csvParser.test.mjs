@@ -24,3 +24,28 @@ test('reports the line of an unclosed quote', () => {
     { statusCode: 400, message: /Unclosed quote starting on line 2/ },
   );
 });
+
+test('reports the line where the unfinished quoted field opens', () => {
+  for (const eol of ['\n', '\r\n', '\r']) {
+    const csv = ['Description,Note', '"Weekly', 'shop","Missing end'].join(eol);
+
+    assert.throws(() => parseCsv(csv), {
+      statusCode: 400,
+      message: 'Unclosed quote starting on line 3',
+    });
+  }
+});
+
+test('preserves escaped quotes and line breaks inside a description', () => {
+  const csv = [
+    'Amount,Description',
+    '80,"Lunch at ""Corner Cafe""',
+    'with friends"',
+    '25,Bus ticket',
+  ].join('\n');
+
+  assert.deepEqual(parseCsv(csv).rows, [
+    { line: 2, values: ['80', 'Lunch at "Corner Cafe"\nwith friends'] },
+    { line: 4, values: ['25', 'Bus ticket'] },
+  ]);
+});

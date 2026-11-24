@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: spendwise
+    runtime: node
+    plan: free
+    buildCommand: >-
+      npm ci --prefix backend --include=dev &&
+      npm ci --prefix frontend --include=dev &&
+      npm run build --prefix backend &&
+      npm run build --prefix frontend
+    startCommand: CLIENT_URL="${CLIENT_URL:-$RENDER_EXTERNAL_URL}" npm run start:production --prefix backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRY
+        value: 15m
+      - key: JWT_REFRESH_EXPIRY
+        value: 7d

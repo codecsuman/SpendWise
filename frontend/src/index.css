@@ -235,6 +235,7 @@
 [data-page="home"] { --page-accent: var(--accent-home); --page-ink: var(--accent-ink-home); --page-glow: var(--glow-home); }
 [data-page="login"] { --page-accent: var(--accent-login); --page-ink: var(--accent-ink-login); --page-glow: var(--glow-login); }
 [data-page="register"] { --page-accent: var(--accent-register); --page-ink: var(--accent-ink-register); --page-glow: var(--glow-register); }
+[data-page="forgot-password"] { --page-accent: var(--accent-forgot-password); --page-ink: var(--accent-ink-forgot-password); --page-glow: var(--glow-forgot-password); }
 [data-page="dashboard"] { --page-accent: var(--accent-dashboard); --page-ink: var(--accent-ink-dashboard); --page-glow: var(--glow-dashboard); }
 [data-page="transactions"] { --page-accent: var(--accent-transactions); --page-ink: var(--accent-ink-transactions); --page-glow: var(--glow-transactions); }
 [data-page="categories"] { --page-accent: var(--accent-categories); --page-ink: var(--accent-ink-categories); --page-glow: var(--glow-categories); }

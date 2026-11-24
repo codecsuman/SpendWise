@@ -23,7 +23,8 @@
 // -------------------------------------------------------------------
 // Read just one file. Values supplied by the deployment host take precedence.
 import dotenv from 'dotenv'
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env'
+const environment = process.env.NODE_ENV
+const envFile = environment === 'production' || environment === 'test' ? `.env.${environment}` : '.env'
 dotenv.config({ path: envFile, quiet: true })
 
 // -------------------------------------------------------------------
@@ -47,6 +48,11 @@ interface EnvConfig {
 
   // Frontend
   CLIENT_URL: string        // Frontend origin for CORS (e.g., 'http://localhost:5173')
+
+  // Google Identity Services (optional)
+  GOOGLE_CLIENT_ID?: string
+  BREVO_API_KEY?: string
+  BREVO_SENDER_EMAIL?: string
 }
 
 // -------------------------------------------------------------------
@@ -101,6 +107,11 @@ export const env: EnvConfig = {
 
   // Frontend
   CLIENT_URL: process.env.CLIENT_URL!,      // CORS origin, e.g., 'http://localhost:5173'
+
+  // Optional so password sign-in still works without Google configured.
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID?.trim() || undefined,
+  BREVO_API_KEY: process.env.BREVO_API_KEY?.trim() || undefined,
+  BREVO_SENDER_EMAIL: process.env.BREVO_SENDER_EMAIL?.trim() || undefined,
 }
 
 // -------------------------------------------------------------------
@@ -202,6 +213,7 @@ if (isMainModule) {
       console.log(`  JWT_ACCESS_EXPIRY: ${env.JWT_ACCESS_EXPIRY}`)
       console.log(`  JWT_REFRESH_EXPIRY: ${env.JWT_REFRESH_EXPIRY}`)
       console.log(`  CLIENT_URL: ${env.CLIENT_URL}`)
+      console.log(`  GOOGLE_CLIENT_ID: ${env.GOOGLE_CLIENT_ID ? 'configured' : 'not set'}`)
       console.log('')
       break
     }

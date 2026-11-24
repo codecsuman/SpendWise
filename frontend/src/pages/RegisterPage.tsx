@@ -19,7 +19,7 @@ import { Eye, EyeOff, Loader2, Wallet } from 'lucide-react'
 import { useState } from 'react'
 
 // useForm manages the values, errors and submitting state of the form.
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 
 // Link swaps pages without a full reload; useNavigate moves us in code.
 import { Link, useNavigate } from 'react-router-dom'
@@ -29,7 +29,10 @@ import { z } from 'zod'
 
 // The generated hook from our RTK Query slice. It POSTs to /api/auth/register
 // and already sends cookies (credentials: 'include').
-import { useRegisterMutation } from '../features/auth/services/authApi'
+import GoogleButton from '../features/auth/components/GoogleButton'
+import SignupEmailCode from '../features/auth/components/SignupEmailCode'
+import { googleSignInEnabled } from '../features/auth/services/googleIdentity'
+import { useAuthOptionsQuery, useGoogleLoginMutation, useRegisterMutation } from '../features/auth/services/authApi'
 
 // --- VALIDATION SCHEMA -----------------------------------------------------
 // confirmPassword is a frontend-only field: it never goes to the server.
@@ -66,18 +69,19 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 // RTK Query puts HTTP errors in an object like { status: 409, data: {...} }.
 // Express sends the safe message as data.message, so we dig it out here.
 // Anything unexpected falls back to a generic message (never a stack trace).
-function getErrorMessage(error: unknown): string {
+function getErrorMessage(error: unknown, fallback = 'Could not create your account. Please try again.'): string {
   if (typeof error === 'object' && error !== null && 'data' in error) {
     const data = (error as { data?: { message?: string } }).data
     if (data && typeof data.message === 'string') return data.message
   }
-  return 'Could not create your account. Please try again.'
+  return fallback
 }
 
 // --- THE COMPONENT ---------------------------------------------------------
 export default function RegisterPage() {
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
@@ -95,6 +99,10 @@ export default function RegisterPage() {
 
   // [trigger, state] — trigger sends the request, state tells us if it's busy.
   const [registerUser, { isLoading }] = useRegisterMutation()
+  const [googleLogin, { isLoading: googlePending }] = useGoogleLoginMutation()
+  const { data: authOptions } = useAuthOptionsQuery()
+  const signupEmail = useWatch({ control, name: 'email' })
+  const [signupCode, setSignupCode] = useState('')
 
   // One toggle hides/shows both password fields.
   const [showPassword, setShowPassword] = useState(false)
@@ -105,6 +113,10 @@ export default function RegisterPage() {
   // handleSubmit only calls this if zod validation passes.
   const onSubmit = async (values: RegisterFormValues) => {
     setServerError('')
+    if (authOptions?.emailCodes && !/^\d{6}$/.test(signupCode)) {
+      setServerError('Request and enter the six-digit email code.')
+      return
+    }
 
     try {
       // Send ONLY the three fields the backend accepts.
@@ -113,6 +125,7 @@ export default function RegisterPage() {
         name: values.name,
         email: values.email,
         password: values.password,
+        ...(authOptions?.emailCodes ? { code: signupCode } : {}),
       }).unwrap() // unwrap() throws on an HTTP error so catch{} runs
 
       // The cookie is already set by the server, so we're logged in.
@@ -123,7 +136,17 @@ export default function RegisterPage() {
   }
 
   // Busy while the request runs OR while react-hook-form is finalising.
-  const busy = isLoading || isSubmitting
+  const busy = isLoading || isSubmitting || googlePending
+
+  const onGoogleCredential = async (credential: string) => {
+    setServerError('')
+    try {
+      await googleLogin({ credential }).unwrap()
+      navigate('/dashboard')
+    } catch (error) {
+      setServerError(getErrorMessage(error, 'Google sign-in failed. Please try again.'))
+    }
+  }
 
   // --- THE UI (JSX) --------------------------------------------------------
   return (
@@ -142,7 +165,7 @@ export default function RegisterPage() {
 
         {/* Server-side error, shown only when non-empty */}
         {serverError && (
-          <p className="mb-4 form-error">
+          <p role="alert" className="mb-4 form-error">
             {serverError}
           </p>
         )}
@@ -189,6 +212,10 @@ export default function RegisterPage() {
               <p className="text-xs text-destructive">{errors.email.message}</p>
             )}
           </div>
+
+          {authOptions?.emailCodes && (
+            <SignupEmailCode email={signupEmail} code={signupCode} onCodeChange={setSignupCode} disabled={busy} />
+          )}
 
           {/* PASSWORD */}
           <div className="flex flex-col gap-1.5">
@@ -271,6 +298,13 @@ export default function RegisterPage() {
             <span className={busy ? 'opacity-0' : undefined}>Create account</span>
           </button>
         </form>
+
+        {googleSignInEnabled && (
+          <div className="mt-4 space-y-3">
+            <p className="text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">or</p>
+            <GoogleButton disabled={busy} onCredential={onGoogleCredential} />
+          </div>
+        )}
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{' '}

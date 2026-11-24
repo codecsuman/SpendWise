@@ -1,7 +1,7 @@
 ﻿import { accessibleColor, cssColor, hexToRgb, luminance, mix } from './themeColors.ts'
 
 const routes = {
-  home: '#0369a1', login: '#a21caf', register: '#0e7490', dashboard: '#4f46e5',
+  home: '#0369a1', login: '#a21caf', register: '#0e7490', 'forgot-password': '#5b21b6', dashboard: '#4f46e5',
   transactions: '#1d4ed8', categories: '#c2410c', budgets: '#6d28d9', goals: '#047857',
   recurring: '#a16207', analytics: '#be185d', workspace: '#0f766e', profile: '#475569',
   settings: '#7e22ce', indigo: '#4338ca', blue: '#1d4ed8', teal: '#0f766e', rose: '#be185d',

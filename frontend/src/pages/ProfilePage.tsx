@@ -17,7 +17,10 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 
-import { useLogoutMutation } from '../features/auth/services/authApi'
+import GoogleButton from '../features/auth/components/GoogleButton'
+import EmailVerificationCard from '../features/auth/components/EmailVerificationCard'
+import { googleSignInEnabled } from '../features/auth/services/googleIdentity'
+import { useGoogleLinkMutation, useLogoutMutation } from '../features/auth/services/authApi'
 import {
   useChangePasswordMutation,
   useGetProfileQuery,
@@ -402,6 +405,8 @@ export default function ProfilePage() {
   const { data } = useGetProfileQuery()
   const user = data?.user
   const [uploadAvatar, { isLoading, isSuccess, error, reset }] = useUploadAvatarMutation()
+  const [linkGoogle, { data: linkResult, isLoading: linking, error: googleError }] = useGoogleLinkMutation()
+  const googleLinked = linkResult?.user.googleLinked || user?.googleLinked
 
   async function handleAvatarUpload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -461,6 +466,28 @@ export default function ProfilePage() {
         <h2 className="mb-4 text-base font-semibold">Account details</h2>
         <ProfileForm />
       </section>
+
+      <EmailVerificationCard />
+
+      {user && (googleSignInEnabled || googleLinked) && (
+        <section className="surface-card space-y-3 p-6">
+          <h2 className="text-base font-semibold">Google sign-in</h2>
+          {googleLinked ? (
+            <p role="status" className="text-sm text-muted-foreground">Google is linked to your SpendWise account.</p>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Link a Google account with the same verified email to use it to sign in.
+              </p>
+              <div className="w-full max-w-xs">
+                <GoogleButton disabled={linking} onCredential={(credential) => { void linkGoogle({ credential }) }} />
+              </div>
+              {linking && <p role="status" className="text-sm text-muted-foreground">Linking Google…</p>}
+              {googleError && <p role="alert" className="form-error">{getErrorMessage(googleError)}</p>}
+            </>
+          )}
+        </section>
+      )}
 
       <section className="surface-card p-6">
         <h2 className="text-base font-semibold">Change password</h2>

@@ -37,3 +37,19 @@ export const authLimiter = rateLimit({
   skipSuccessfulRequests: true,
   message: tooMany("Too many attempts. Please try again in 15 minutes."),
 });
+
+export const otpSendLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 8,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: tooMany("Too many code requests. Please try again in 15 minutes."),
+});
+
+export const otpCheckLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: tooMany("Too many code attempts. Please try again in 15 minutes."),
+});

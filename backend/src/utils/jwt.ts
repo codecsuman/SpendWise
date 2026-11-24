@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { env } from '../config/env.js';
 
@@ -7,6 +8,7 @@ export interface JwtPayload {
   userId: string;
   email: string;
   type: TokenType;
+  sessionVersion?: number;
 }
 
 function getSecret(type: TokenType): string {
@@ -23,6 +25,7 @@ export function signToken(
 ): string {
   return jwt.sign({ ...payload, type }, getSecret(type), {
     expiresIn: getExpiry(type) as SignOptions['expiresIn'],
+    jwtid: randomUUID(),
   });
 }
 
@@ -38,10 +41,11 @@ export function verifyToken(token: string, type: TokenType): JwtPayload {
 
 export function generateTokenPair(
   userId: string,
-  email: string
+  email: string,
+  sessionVersion = 0,
 ): { accessToken: string; refreshToken: string } {
-  const accessToken = signToken({ userId, email }, 'access');
-  const refreshToken = signToken({ userId, email }, 'refresh');
+  const accessToken = signToken({ userId, email, sessionVersion }, 'access');
+  const refreshToken = signToken({ userId, email, sessionVersion }, 'refresh');
   return { accessToken, refreshToken };
 }
 

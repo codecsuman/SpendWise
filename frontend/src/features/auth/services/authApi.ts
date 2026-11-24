@@ -25,6 +25,7 @@ export interface AuthUser {
   timezone: string
   language: string
   emailVerified: boolean
+  googleLinked: boolean
   // JSON has no Date type, so the server sends a string like
   // "2026-10-28T10:00:00.000Z". Wrap it with new Date(...) when displaying.
   createdAt: string
@@ -46,7 +47,10 @@ export interface RegisterInput {
   name: string
   email: string
   password: string
+  code?: string
 }
+
+type StatusResponse = { success: boolean; message: string }
 
 // Base URL in one place. VITE_* values are PUBLIC (they ship in the bundle),
 // which is fine here because this is just an address, not a secret.
@@ -67,6 +71,10 @@ export const authApi = createApi({
   tagTypes: ['User'],
 
   endpoints: (builder) => ({
+    authOptions: builder.query<{ emailCodes: boolean }, void>({
+      query: () => '/options',
+    }),
+
     // POST /api/auth/login -> sets the auth cookies
     login: builder.mutation<AuthResponse, LoginInput>({
       query: (body) => ({ url: '/login', method: 'POST', body }),
@@ -77,6 +85,38 @@ export const authApi = createApi({
     register: builder.mutation<AuthResponse, RegisterInput>({
       query: (body) => ({ url: '/register', method: 'POST', body }),
       invalidatesTags: ['User'],
+    }),
+
+    sendSignupCode: builder.mutation<StatusResponse, { email: string }>({
+      query: (body) => ({ url: '/register/code', method: 'POST', body }),
+    }),
+
+    forgotPassword: builder.mutation<StatusResponse, { email: string }>({
+      query: (body) => ({ url: '/forgot-password', method: 'POST', body }),
+    }),
+
+    resetPassword: builder.mutation<StatusResponse, { email: string; code: string; password: string }>({
+      query: (body) => ({ url: '/reset-password', method: 'POST', body }),
+      invalidatesTags: (_result, error) => error ? [] : ['User'],
+    }),
+
+    sendEmailVerificationCode: builder.mutation<StatusResponse, void>({
+      query: () => ({ url: '/email/code', method: 'POST', body: {} }),
+    }),
+
+    verifyEmail: builder.mutation<AuthResponse, { code: string }>({
+      query: (body) => ({ url: '/email/verify', method: 'POST', body }),
+      invalidatesTags: (_result, error) => error ? [] : ['User'],
+    }),
+
+    googleLogin: builder.mutation<AuthResponse, { credential: string }>({
+      query: (body) => ({ url: '/google', method: 'POST', body }),
+      invalidatesTags: (_result, error) => error ? [] : ['User'],
+    }),
+
+    googleLink: builder.mutation<AuthResponse, { credential: string }>({
+      query: (body) => ({ url: '/google/link', method: 'POST', body }),
+      invalidatesTags: (_result, error) => error ? [] : ['User'],
     }),
 
     // POST /api/auth/logout -> revokes the refresh token, clears cookies.
@@ -99,8 +139,16 @@ export const authApi = createApi({
 // Auto-generated hooks. The names come from the endpoint keys above:
 // login -> useLoginMutation, getMe -> useGetMeQuery.
 export const {
+  useAuthOptionsQuery,
   useLoginMutation,
   useRegisterMutation,
+  useSendSignupCodeMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
+  useSendEmailVerificationCodeMutation,
+  useVerifyEmailMutation,
+  useGoogleLoginMutation,
+  useGoogleLinkMutation,
   useLogoutMutation,
   useGetMeQuery,
 } = authApi

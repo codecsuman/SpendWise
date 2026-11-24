@@ -70,6 +70,23 @@ For a compiled local run, use `npm run build` followed by `npm start`. The healt
 
 In a separate terminal, run `npm install` and `npm run dev` from `SpendWise/frontend`. Open `http://localhost:5173`. To point the local frontend to another API, set `VITE_API_URL` in `frontend/.env.development` and restart Vite.
 
+For **Continue with Google**, use a Google OAuth **Web application** client. Under **Authorized JavaScript origins**, add `http://localhost` and `http://localhost:5173`. The popup uses a JavaScript callback, so leave **Authorized redirect URIs** blank. Set the same public client ID as `GOOGLE_CLIENT_ID` in `backend/.env` and `VITE_GOOGLE_CLIENT_ID` in `frontend/.env.development`, then restart both apps.
+
+The button signs up new users and signs returning users into the same account. If you already use a SpendWise password, sign in and link your Google account from **Profile → Google sign-in**.
+
+### Email verification and password resets
+
+Create a free Brevo account, verify a sender email, and generate a Brevo API key. Save these values in the ignored `backend/.env` and restart the backend. Brevo's free plan includes up to 300 email sends per day. [Brevo sender setup](https://developers.brevo.com/docs/getting-started-with-senders-and-domains) · [Free plan limits](https://help.brevo.com/hc/en-us/articles/208580669-FAQs-What-are-the-limits-of-the-Free-plan)
+
+```dotenv
+BREVO_API_KEY=your-brevo-api-key
+BREVO_SENDER_EMAIL=verified-sender@example.com
+```
+
+With delivery configured, new email signups require a six-digit email code. Existing users can verify from **Profile → Email verification**. **Forgot password?** sends a code to the account's email address. A successful reset signs out older sessions and sends a confirmation email. Codes expire after 10 minutes.
+
+For production, set both Brevo variables on the backend host. Test runs load `backend/.env.test` and use mock email delivery in the email authentication integration test.
+
 ### Profile photo setup
 
 Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` in the backend environment to enable profile photo uploads. The backend signs requests and accepts JPEG, PNG, WebP, and HEIC/HEIF up to 5 MB. Keep Cloudinary credentials in the backend.
@@ -80,9 +97,20 @@ Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` i
 - **Frontend** reads `frontend/.env.production` or build-time environment variables during `npm run build`. By default, serve the frontend over HTTPS and forward `/api/*` to Express on the same origin. Set `VITE_API_URL` at build time when using a separate same-site API origin.
 - Keep actual environment files, database credentials, tokens, and API secrets out of Git. All `VITE_*` variables are public.
 
+### Deploy the website and API together on Render
+
+1. In MongoDB Atlas, create a database user with read/write access to `spendwise`. Open your cluster's **Connect → Drivers**, copy the Node.js connection string, and set the database name to `spendwise` before the query string. Keep this URI private. [Atlas connection guide](https://www.mongodb.com/docs/atlas/driver-connection/)
+2. With these changes in your GitHub branch, open **New → Blueprint** in Render, select the SpendWise repository and branch, and enter `backend/render.yaml` as the **Blueprint Path**. Supply the Atlas URI when Render prompts for `MONGODB_URI`. The Blueprint builds both apps and generates the two JWT secrets. [Render Blueprint setup](https://render.com/docs/infrastructure-as-code)
+3. Add the Render service's outbound IP ranges to the Atlas project’s IP access list so Express can connect. If the initial deploy timed out waiting for MongoDB, redeploy after updating the list. [Render outbound IPs](https://render.com/docs/outbound-ip-addresses)
+4. Open the HTTPS URL on the Render service dashboard. It serves the website at `/`, the API at `/api`, and the health check at `/health`. The Blueprint uses that origin for `CLIENT_URL`. If you attach a custom domain, set `CLIENT_URL` to its full HTTPS origin.
+
+The Blueprint uses Render's free web service. While the service is asleep, the in-process bill and reminder schedulers are paused. [Render free service behavior](https://render.com/docs/free)
+
 ## Verification and roadmap
 
-The backend health endpoint, frontend build and lint, and a signed-in Chrome test against local Express and MongoDB passed. The test covered transaction creation, editing, filters, deletion, and refreshed Dashboard and Budgets totals. Live Cloudinary upload and full CSV end-to-end verification are still pending.
+From `SpendWise/backend`, run `npm test` with local MongoDB running. It builds the backend, runs the CSV parser tests, and tests signed-in CSV preview, first import, and reimport against a fresh database. The integration test removes its database after each run. To use a dedicated remote test cluster, set `TEST_MONGODB_URI` in the test environment with permission to create and remove the generated test database.
+
+The backend health endpoint, frontend build and lint, and a signed-in Chrome test against local Express and MongoDB passed. The browser test covered transaction creation, editing, filters, deletion, and refreshed Dashboard and Budgets totals. Live Cloudinary upload and the browser CSV flow still need verification.
 
 Next on the roadmap are notifications, Redis caching, RabbitMQ, real-time features, automated tests, Docker, CI/CD, and AWS deployment.
 

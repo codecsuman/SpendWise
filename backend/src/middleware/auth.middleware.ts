@@ -11,10 +11,13 @@
 // ============================================================================
 
 import type { NextFunction, Request, Response } from 'express';
+import { isObjectIdOrHexString } from 'mongoose';
+import { UserRepository } from '../repositories/user.repository.js';
 import { AppError } from '../utils/AppError.js';
 import { verifyToken } from '../utils/jwt.js';
 
 const ACCESS_COOKIE = 'accessToken';
+const userRepository = new UserRepository();
 
 // Add `user` to Express's Request type.
 // The controller has the same block; identical declarations merge safely.
@@ -65,11 +68,11 @@ function extractToken(req: Request): string | undefined {
   return readCookie(req, ACCESS_COOKIE);
 }
 
-export function authMiddleware(
+export async function authMiddleware(
   req: Request,
   _res: Response,
   next: NextFunction,
-): void {
+): Promise<void> {
   const token = extractToken(req);
 
   if (!token) {
@@ -80,6 +83,10 @@ export function authMiddleware(
   try {
     // verifyToken checks the signature, expiry and token type ('access').
     const payload = verifyToken(token, 'access');
+    if (!isObjectIdOrHexString(payload.userId) ||
+        !await userRepository.isSessionCurrent(payload.userId, payload.sessionVersion ?? 0)) {
+      throw new AppError('Session has expired. Please sign in again.', 401);
+    }
 
     // These values come from the signed JWT. The client cannot fake them.
     req.user = {

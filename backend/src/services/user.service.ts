@@ -90,12 +90,9 @@ export class UserService {
 
     const hashedPassword = await hashPassword(input.newPassword);
 
-    await userRepository.updateById(userId, {
-      // $set + $unset must be atomic operators — a mixed document is rejected
-      // by MongoDB. Clearing the refresh hash logs out every other device.
-      $set: { password: hashedPassword },
-      $unset: { refreshToken: 1 },
-    });
+    if (!await userRepository.updatePasswordAndRevokeSessions(userId, user.sessionVersion ?? 0, hashedPassword)) {
+      throw new AppError('The password changed during this request. Sign in again.', 409);
+    }
   }
 }
 

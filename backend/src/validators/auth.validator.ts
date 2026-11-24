@@ -2,9 +2,12 @@ import { z } from 'zod';
 
 const emailField = z
   .string()
+  .trim()
+  .max(254)
   .email('Please provide a valid email')
-  .toLowerCase()
-  .trim();
+  .toLowerCase();
+
+const codeField = z.string().regex(/^\d{6}$/, 'Enter the six-digit code');
 
 export const passwordField = z
   .string()
@@ -27,7 +30,8 @@ export const registerSchema = z.object({
     currency: z.enum(['INR', 'USD', 'EUR', 'GBP', 'CAD', 'AUD']).optional(),
     timezone: z.string().optional(),
     language: z.enum(['en', 'hi', 'es', 'fr', 'de']).optional(),
-  }),
+    code: codeField.optional(),
+  }).strict(),
 });
 
 export const loginSchema = z.object({
@@ -43,6 +47,12 @@ export const refreshSchema = z.object({
   }),
 });
 
+export const googleCredentialSchema = z.object({
+  body: z.object({
+    credential: z.string().min(1).max(9_000),
+  }).strict(),
+});
+
 export const logoutSchema = z.object({
   cookies: z.object({
     refreshToken: z.string().optional(),
@@ -52,20 +62,19 @@ export const logoutSchema = z.object({
 export const forgotPasswordSchema = z.object({
   body: z.object({
     email: emailField,
-  }),
+  }).strict(),
 });
 
 export const resetPasswordSchema = z.object({
   body: z.object({
-    token: z.string().min(1, 'Reset token is required'),
+    email: emailField,
+    code: codeField,
     password: passwordField,
-  }),
+  }).strict(),
 });
 
 export const verifyEmailSchema = z.object({
-  query: z.object({
-    token: z.string().min(1, 'Verification token is required'),
-  }),
+  body: z.object({ code: codeField }).strict(),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>['body'];
@@ -74,4 +83,3 @@ export type RefreshInput = z.infer<typeof refreshSchema>['cookies'];
 export type LogoutInput = z.infer<typeof logoutSchema>['cookies'];
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>['body'];
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>['body'];
-export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>['query'];
